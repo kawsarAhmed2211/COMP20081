@@ -71,7 +71,7 @@ public class SecondaryController {
         DB myObj = new DB();
         ObservableList<User> data;
         try {
-            data = myObj.getDataFromTable();
+            data = myObj.getAllUsers();
             TableColumn user = new TableColumn("User");
         user.setCellValueFactory(
         new PropertyValueFactory<>("user"));
