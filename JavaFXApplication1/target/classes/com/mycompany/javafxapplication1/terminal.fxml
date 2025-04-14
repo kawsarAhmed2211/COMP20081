@@ -6,15 +6,15 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-
-<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="406.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/23.0.1" fx:controller="com.mycompany.javafxapplication1.TerminalController">
+<AnchorPane id="AnchorPane" prefHeight="446.0" prefWidth="446.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.javafxapplication1.TerminalController">
    <children>
-      <Label layoutX="76.0" layoutY="14.0" text="Welcome" />
-      <TextField layoutX="144.0" layoutY="10.0" />
-      <Label layoutX="14.0" layoutY="68.0" text="Execute your terminal commands here " />
-      <TextField fx:id="terminalCommandTextFieldID" layoutX="14.0" layoutY="91.0" onAction="#terminalCommandTextFieldAction" prefHeight="24.0" prefWidth="259.0" />
-      <Button fx:id="terminalExecuteButtonID" layoutX="286.0" layoutY="91.0" mnemonicParsing="false" onAction="#terminalExecuteButtonAction" text="Execute" />
-      <TextArea fx:id="terminalCommandTextAreaID" layoutX="14.0" layoutY="125.0" prefHeight="200.0" prefWidth="349.0" />
-      <Button layoutX="14.0" layoutY="348.0" mnemonicParsing="false" onAction="#switchToSecondary" text="Back" />
+      <Label layoutX="131.0" layoutY="20.0" text="Welcome to the Terminal Page" />
+      <TextField fx:id="userTextField" layoutX="146.0" layoutY="44.0" />
+      <Label layoutX="23.0" layoutY="78.0" text="Enter your commands here" />
+      <Label layoutX="23.0" layoutY="102.0" text="[Note: can only run mv, cp, ls, mkdir, ps, whoami, tree, nano " />
+      <TextField fx:id="terminalCommandTextFieldID" layoutX="22.0" layoutY="132.0" prefHeight="24.0" prefWidth="380.0" />
+      <Button fx:id="terminalExecuteButtonID" layoutX="327.0" layoutY="156.0" mnemonicParsing="false" onAction="#terminalExecuteButtonAction" text="Execute " />
+      <TextArea fx:id="terminalCommandTextAreaID" layoutX="22.0" layoutY="179.0" prefHeight="200.0" prefWidth="380.0" />
+      <Button fx:id="switchToSecondaryButtonID" layoutX="22.0" layoutY="397.0" mnemonicParsing="false" onAction="#switchToSecondary" text="Back" />
    </children>
 </AnchorPane>

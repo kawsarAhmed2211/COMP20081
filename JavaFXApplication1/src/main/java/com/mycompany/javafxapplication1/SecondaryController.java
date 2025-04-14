@@ -58,6 +58,9 @@ public class SecondaryController {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("terminal.fxml"));
             Parent root = loader.load();
+            TerminalController terminalController = loader.getController();
+            terminalController.setUsername(userTextField.getText());
+            
             Scene scene = new Scene(root, 640, 480);
             terminalStage.setScene(scene);
             //secondaryStage.setTitle("Login");
