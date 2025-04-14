@@ -40,9 +40,33 @@ public class SecondaryController {
     private TextField customTextField;
     
     @FXML
+    private Button terminalButton;
+    
+    @FXML
     private void RefreshBtnHandler(ActionEvent event){
         Stage primaryStage = (Stage) customTextField.getScene().getWindow();
         customTextField.setText((String)primaryStage.getUserData());
+    }
+    
+    @FXML
+    private void switchToTerminal(ActionEvent event){
+        Stage secondaryStage = new Stage();
+        Stage terminalStage = (Stage) terminalButton.getScene().getWindow();
+        try {
+            
+        
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("terminal.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root, 640, 480);
+            terminalStage.setScene(scene);
+            //secondaryStage.setTitle("Login");
+            terminalStage.show();
+            secondaryStage.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
         
     @FXML
