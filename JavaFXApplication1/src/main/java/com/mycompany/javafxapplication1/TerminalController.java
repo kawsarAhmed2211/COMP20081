@@ -32,11 +32,15 @@ public class TerminalController {
     private Button switchToSecondaryButtonID;
 
     private String username;
+    
     private File currentDirectory;
+    
+    private final String homePath = System.getProperty("user.dir") + "/src/Files";
 
     public void setUsername(String username) {
-        this.username = username;
-        userTextField.setText(username);
+        User user = new User(username);  // Create a new User with just the username  // Store the user globally in UserSession
+        userTextField.setText(username);  // Display the username in the TextField
+        userTextField.setEditable(false);
         getOrCreateUserDirectory();
     }
 
@@ -45,7 +49,7 @@ public class TerminalController {
     }
 
     private File getOrCreateUserDirectory() {
-        File userDir = new File("users/" + getUsername());
+        File userDir = new File(homePath+ getUsername());
         if (!userDir.exists()) {
             userDir.mkdirs();
         }
@@ -82,6 +86,13 @@ private void terminalExecuteButtonAction(ActionEvent event) {
             e.printStackTrace();
         }
         return;
+    }
+    
+    if(command.startsWith("whoami")){
+        String name = userTextField.getText();
+        terminalCommandTextAreaID.setText(name);
+        return;
+
     }
 
     // Regular command execution in currentDirectory

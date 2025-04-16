@@ -18,7 +18,13 @@ public class User {
         this.user = new SimpleStringProperty(user);
         this.pass = new SimpleStringProperty(pass);
     }
-
+    
+    User(String user){
+        this.user = new SimpleStringProperty(user);
+;    }
+    
+    private static User currentUser;
+    
     public String getUser() {
         return user.get();
     }
@@ -33,5 +39,13 @@ public class User {
 
     public void setPass(String pass) {
         this.pass.set(pass);
+    }
+    
+    public static User getCurrentUser() {
+        return currentUser;
+    }
+
+    public static void setCurrentUser(User user) {
+        currentUser = user;
     }
 }

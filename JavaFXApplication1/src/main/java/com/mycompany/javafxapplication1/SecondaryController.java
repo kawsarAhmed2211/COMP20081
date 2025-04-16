@@ -43,33 +43,12 @@ public class SecondaryController {
     private Button terminalButton;
     
     @FXML
-    private void RefreshBtnHandler(ActionEvent event){
-        Stage primaryStage = (Stage) customTextField.getScene().getWindow();
-        customTextField.setText((String)primaryStage.getUserData());
-    }
+    private Button fileManagementButton;
     
     @FXML
-    private void switchToTerminal(ActionEvent event){
-        Stage secondaryStage = new Stage();
-        Stage terminalStage = (Stage) terminalButton.getScene().getWindow();
-        try {
-            
-        
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("terminal.fxml"));
-            Parent root = loader.load();
-            TerminalController terminalController = loader.getController();
-            terminalController.setUsername(userTextField.getText());
-            
-            Scene scene = new Scene(root, 640, 480);
-            terminalStage.setScene(scene);
-            //secondaryStage.setTitle("Login");
-            terminalStage.show();
-            secondaryStage.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void RefreshBtnHandler(ActionEvent event){
+        Stage primaryStage = (Stage) customTextField.getScene().getWindow();
+        customTextField.setText((String) primaryStage.getUserData());
     }
         
     @FXML
@@ -77,8 +56,6 @@ public class SecondaryController {
         Stage secondaryStage = new Stage();
         Stage primaryStage = (Stage) secondaryButton.getScene().getWindow();
         try {
-            
-        
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("primary.fxml"));
             Parent root = loader.load();
@@ -110,6 +87,54 @@ public class SecondaryController {
         dataTableView.getColumns().addAll(user, pass);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(SecondaryController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    @FXML
+    private void switchToTerminal(ActionEvent event){
+        //Stage secondaryStage = new Stage();
+        Stage terminalStage = (Stage) terminalButton.getScene().getWindow();
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("terminal.fxml"));
+            Parent root = loader.load();
+            TerminalController terminalController = loader.getController();
+            String username = userTextField.getText();
+            terminalController.setUsername(username);
+
+        // Keep it in userData for refresh buttons later
+            terminalStage.setUserData(username);
+            
+            Scene scene = new Scene(root, 640, 480);
+            terminalStage.setScene(scene);
+            //secondaryStage.setTitle("Login");
+            terminalStage.show();
+            //secondaryStage.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @FXML
+    private void switchToFileManagementController(ActionEvent event){
+        Stage secondaryStage = new Stage();
+        Stage fileControllerStage = (Stage) fileManagementButton.getScene().getWindow();
+        try {
+
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("fileManagement.fxml"));
+            Parent root = loader.load();
+            FileManagementController fileManagementController = loader.getController();
+            
+            Scene scene = new Scene(root, 640, 480);
+            fileControllerStage.setScene(scene);
+            fileManagementController.setUser(userTextField.getText());
+            fileControllerStage.show();
+            secondaryStage.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

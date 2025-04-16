@@ -4,5 +4,6 @@ com/mycompany/javafxapplication1/PrimaryController.class
 com/mycompany/javafxapplication1/App.class
 com/mycompany/javafxapplication1/TerminalController.class
 com/mycompany/javafxapplication1/DB.class
+com/mycompany/javafxapplication1/FileManagementController.class
 com/mycompany/javafxapplication1/User.class
 com/mycompany/javafxapplication1/SecondaryController.class
