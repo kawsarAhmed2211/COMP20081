@@ -102,6 +102,8 @@ public class FileManagementController {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select File to Update");
+        fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
+
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null && file.exists()) {
@@ -123,6 +125,8 @@ public class FileManagementController {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select File to Delete");
+        fileChooser.setInitialDirectory(new File(homePath + "/"+getUsername()));
+
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null && file.exists()) {
@@ -142,6 +146,8 @@ public class FileManagementController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Read File");
         File file = fileChooser.showOpenDialog(stage);
+        fileChooser.setInitialDirectory(new File(homePath+"/"+ getUsername()));
+
 
         if (file != null && file.exists()) {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {

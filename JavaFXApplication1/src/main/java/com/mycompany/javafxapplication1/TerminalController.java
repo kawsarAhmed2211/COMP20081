@@ -49,7 +49,7 @@ public class TerminalController {
     }
 
     private File getOrCreateUserDirectory() {
-        File userDir = new File(homePath+ getUsername());
+        File userDir = new File(homePath+ "/"+getUsername());
         if (!userDir.exists()) {
             userDir.mkdirs();
         }
