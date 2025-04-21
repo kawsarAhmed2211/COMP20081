@@ -6,7 +6,7 @@ package com.mycompany.javafxapplication1;
 
 /**
  *
- * @author ntu-user
+ * @author kawsar
  */
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;

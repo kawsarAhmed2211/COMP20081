@@ -1,0 +1,1 @@
+fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));

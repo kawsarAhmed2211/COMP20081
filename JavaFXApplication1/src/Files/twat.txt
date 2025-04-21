@@ -1,9 +1,4 @@
-hfcvecdjhrftnwsbdecrf
-fr4hht534y6gt5rfedcwxsdecrfgte5hy
-tgrvfedcxwecfrvgthyjugtrf
-tgbrvfecdwxswdecfrgtehygtrfedcwxs
-hygtrfedwsqwderfgtehyrjugtrds
-gt5rfedcxwswderfgt
+gtfr
 package com.mycompany.javafxapplication1;
 
 import javafx.fxml.FXML;
@@ -12,7 +7,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Alert.AlertType;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Optional;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -46,9 +45,13 @@ public class FileManagementController {
 
     // Main working directory for file storage
     private final String homePath = System.getProperty("user.dir") + "/src/Files/";
-
+    
     public String getUsername() {
         return this.userTextField.getText();
+    }
+    
+    public String getHomePath(){
+        return this.homePath;
     }
     
     public void setUser(String username){
@@ -84,25 +87,15 @@ public class FileManagementController {
 
         result.ifPresent(filename -> {
             try {
-                // Path where user files are stored
-                String userDirPath = homePath + getUsername();
-                File userDir = new File(userDirPath);
-                if (!userDir.exists()) userDir.mkdirs();
+                File dir = new File(homePath+getUsername());
+                if (!dir.exists()) dir.mkdirs();
 
-                // Path for the new file
-                File file = new File(userDirPath + "/" + filename);
+                File file = new File(homePath + "/" + getUsername()+filename);
                 if (file.exists()) {
                     showAlert("Warning", "File already exists.");
                 } else {
-                    // Create the file using nano (using terminal)
-                    String[] cmd = {
-                        "x-terminal-emulator", "-e", "bash", "-c",
-                        "cd \"" + userDirPath + "\" && nano \"" + filename + "\""
-                    };
+                    String[] cmd = {"x-terminal-emulator", "-e", "bash", "-c", "cd \"" + homePath + "\" && nano \"" + filename + "\""};
                     new ProcessBuilder(cmd).start();
-
-                    // After the user creates the file, chunk it and encrypt it
-                    chunkAndEncryptFile(file, userDirPath);
                 }
             } catch (IOException e) {
                 showAlert("Error", "Error creating file: " + e.getMessage());
@@ -110,64 +103,12 @@ public class FileManagementController {
         });
     }
 
-    // Chunk and encrypt the file
-    private void chunkAndEncryptFile(File file, String userDirectory) {
-        try {
-            // Create the directory for chunked files if it doesn't exist
-            File chunkedDir = new File(userDirectory + "/chunked_files/");
-            if (!chunkedDir.exists()) chunkedDir.mkdirs();
-
-            // Define the chunk size (e.g., 10 MB per chunk)
-            final long CHUNK_SIZE = 10 * 1024 * 1024;  // 10 MB
-            long fileSize = file.length();
-
-            try (BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
-                byte[] buffer = new byte[(int) CHUNK_SIZE];
-                int chunkCount = 0;
-                int bytesRead;
-
-                // Read and split the file into chunks
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    File chunkFile = new File(chunkedDir, file.getName() + ".part" + (++chunkCount));
-                    try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(chunkFile))) {
-                        outputStream.write(buffer, 0, bytesRead);
-                    }
-
-                    // Encrypt the chunk after it's saved
-                    encryptChunk(chunkFile, chunkedDir);
-                }
-            }
-        } catch (IOException e) {
-            showAlert("Error", "Error chunking the file: " + e.getMessage());
-        }
-    }
-
-    // Encrypt the chunk using the encryption class
-    private void encryptChunk(File chunkFile, File chunkedDir) {
-        try {
-            FileEncryptionDecryption encryptionDecryption = new FileEncryptionDecryption();
-
-            // Encrypt the chunk file
-            byte[] chunkData = Files.readAllBytes(chunkFile.toPath());
-            byte[] encryptedChunk = encryptionDecryption.encryptChunk(chunkData, "your-secret-password");
-
-            // Write the encrypted chunk to a new file
-            File encryptedChunkFile = new File(chunkedDir, chunkFile.getName() + ".enc");
-            Files.write(encryptedChunkFile.toPath(), encryptedChunk);
-
-            // Optionally delete the original chunk after encryption
-            chunkFile.delete();
-
-            showAlert("Success", "Chunk encrypted: " + encryptedChunkFile.getAbsolutePath());
-        } catch (Exception e) {
-            showAlert("Error", "Error encrypting chunk: " + e.getMessage());
-        }
-    }
-
     private void promptAndUpdateFile(ActionEvent event) {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select File to Update");
+        fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
+
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null && file.exists()) {
@@ -175,6 +116,8 @@ public class FileManagementController {
                 "x-terminal-emulator", "-e", "bash", "-c",
                 "cd \"" + file.getParent() + "\" && nano \"" + file.getName() + "\""
             };
+            FileChunking fileChunking = new FileChunking();
+                    fileChunking.splitFileIntoChunks(file);
             try {
                 new ProcessBuilder(cmd).start();
             } catch (IOException e) {
@@ -189,6 +132,8 @@ public class FileManagementController {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select File to Delete");
+        fileChooser.setInitialDirectory(new File(homePath));
+
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null && file.exists()) {
@@ -208,6 +153,398 @@ public class FileManagementController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Read File");
         File file = fileChooser.showOpenDialog(stage);
+        fileChooser.setInitialDirectory(new File(homePath));
+
+
+        if (file != null && file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+                StringBuilder content = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+                showAlert("File Contents", content.toString());
+            } catch (IOException e) {
+                showAlert("Error", "Could not read file: " + e.getMessage());
+            }
+        } else {
+            showAlert("Error", "No file selected or file does not exist.");
+        }
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    @FXML
+    public void switchToSecondary(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
+            Parent root = loader.load();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.show();
+
+            ((Stage) switchToSecondaryButtonID.getScene().getWindow()).close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}package com.mycompany.javafxapplication1;
+
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Alert.AlertType;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Optional;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
+public class FileManagementController {
+
+    @FXML
+    private Button createButtonFileID;
+
+    @FXML
+    private Button updateButtonFileID;
+
+    @FXML
+    private Button deleteFileID;
+
+    @FXML
+    private Button viewFileID;
+    
+    @FXML
+    private Button switchToSecondaryButtonID;
+    
+    @FXML
+    private TextField userTextField;
+    
+    private String username;
+
+    // Main working directory for file storage
+    private final String homePath = System.getProperty("user.dir") + "/src/Files/";
+    
+    public String getUsername() {
+        return this.userTextField.getText();
+    }
+    
+    public String getHomePath(){
+        return this.homePath;
+    }
+    
+    public void setUser(String username){
+        this.username = username;
+        userTextField.setText(username);
+    }
+    
+    @FXML
+    private void createFileButtonAction() {
+        promptAndCreateFile();
+    }
+
+    @FXML
+    private void updateFileButtonAction(ActionEvent event) {
+        promptAndUpdateFile(event);
+    }
+
+    @FXML
+    private void deleteFileAction(ActionEvent event) {
+        promptAndDeleteFile(event);
+    }
+
+    @FXML
+    private void viewFileActon(ActionEvent event) {
+        promptAndReadFile(event);
+    }
+
+    private void promptAndCreateFile() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Create File");
+        dialog.setHeaderText("Enter the filename to create:");
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(filename -> {
+            try {
+                File dir = new File(homePath+getUsername());
+                if (!dir.exists()) dir.mkdirs();
+
+                File file = new File(homePath + "/" + getUsername()+filename);
+                if (file.exists()) {
+                    showAlert("Warning", "File already exists.");
+                } else {
+                    String[] cmd = {"x-terminal-emulator", "-e", "bash", "-c", "cd \"" + homePath + "\" && nano \"" + filename + "\""};
+                    new ProcessBuilder(cmd).start();
+                }
+            } catch (IOException e) {
+                showAlert("Error", "Error creating file: " + e.getMessage());
+            }
+        });
+    }
+
+    private void promptAndUpdateFile(ActionEvent event) {
+        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select File to Update");
+        fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
+
+        File file = fileChooser.showOpenDialog(stage);
+
+        if (file != null && file.exists()) {
+            String[] cmd = {
+                "x-terminal-emulator", "-e", "bash", "-c",
+                "cd \"" + file.getParent() + "\" && nano \"" + file.getName() + "\""
+            };
+            FileChunking fileChunking = new FileChunking();
+                    fileChunking.splitFileIntoChunks(file);
+            try {
+                new ProcessBuilder(cmd).start();
+            } catch (IOException e) {
+                showAlert("Error", "Could not open file: " + e.getMessage());
+            }
+        } else {
+            showAlert("Error", "File not selected or does not exist.");
+        }
+    }
+
+    private void promptAndDeleteFile(ActionEvent event) {
+        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select File to Delete");
+        fileChooser.setInitialDirectory(new File(homePath));
+
+        File file = fileChooser.showOpenDialog(stage);
+
+        if (file != null && file.exists()) {
+            boolean deleted = file.delete();
+            if (deleted) {
+                showAlert("Success", "File deleted successfully.");
+            } else {
+                showAlert("Error", "Failed to delete file.");
+            }
+        } else {
+            showAlert("Error", "File not selected or does not exist.");
+        }
+    }
+
+    private void promptAndReadFile(ActionEvent event) {
+        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Read File");
+        File file = fileChooser.showOpenDialog(stage);
+        fileChooser.setInitialDirectory(new File(homePath));
+
+
+        if (file != null && file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+                StringBuilder content = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+                showAlert("File Contents", content.toString());
+            } catch (IOException e) {
+                showAlert("Error", "Could not read file: " + e.getMessage());
+            }
+        } else {
+            showAlert("Error", "No file selected or file does not exist.");
+        }
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    @FXML
+    public void switchToSecondary(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
+            Parent root = loader.load();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.show();
+
+            ((Stage) switchToSecondaryButtonID.getScene().getWindow()).close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}package com.mycompany.javafxapplication1;
+
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Alert.AlertType;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Optional;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
+public class FileManagementController {
+
+    @FXML
+    private Button createButtonFileID;
+
+    @FXML
+    private Button updateButtonFileID;
+
+    @FXML
+    private Button deleteFileID;
+
+    @FXML
+    private Button viewFileID;
+    
+    @FXML
+    private Button switchToSecondaryButtonID;
+    
+    @FXML
+    private TextField userTextField;
+    
+    private String username;
+
+    // Main working directory for file storage
+    private final String homePath = System.getProperty("user.dir") + "/src/Files/";
+    
+    public String getUsername() {
+        return this.userTextField.getText();
+    }
+    
+    public String getHomePath(){
+        return this.homePath;
+    }
+    
+    public void setUser(String username){
+        this.username = username;
+        userTextField.setText(username);
+    }
+    
+    @FXML
+    private void createFileButtonAction() {
+        promptAndCreateFile();
+    }
+
+    @FXML
+    private void updateFileButtonAction(ActionEvent event) {
+        promptAndUpdateFile(event);
+    }
+
+    @FXML
+    private void deleteFileAction(ActionEvent event) {
+        promptAndDeleteFile(event);
+    }
+
+    @FXML
+    private void viewFileActon(ActionEvent event) {
+        promptAndReadFile(event);
+    }
+
+    private void promptAndCreateFile() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Create File");
+        dialog.setHeaderText("Enter the filename to create:");
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(filename -> {
+            try {
+                File dir = new File(homePath+getUsername());
+                if (!dir.exists()) dir.mkdirs();
+
+                File file = new File(homePath + "/" + getUsername()+filename);
+                if (file.exists()) {
+                    showAlert("Warning", "File already exists.");
+                } else {
+                    String[] cmd = {"x-terminal-emulator", "-e", "bash", "-c", "cd \"" + homePath + "\" && nano \"" + filename + "\""};
+                    new ProcessBuilder(cmd).start();
+                }
+            } catch (IOException e) {
+                showAlert("Error", "Error creating file: " + e.getMessage());
+            }
+        });
+    }
+
+    private void promptAndUpdateFile(ActionEvent event) {
+        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select File to Update");
+        fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
+
+        File file = fileChooser.showOpenDialog(stage);
+
+        if (file != null && file.exists()) {
+            String[] cmd = {
+                "x-terminal-emulator", "-e", "bash", "-c",
+                "cd \"" + file.getParent() + "\" && nano \"" + file.getName() + "\""
+            };
+            FileChunking fileChunking = new FileChunking();
+                    fileChunking.splitFileIntoChunks(file);
+            try {
+                new ProcessBuilder(cmd).start();
+            } catch (IOException e) {
+                showAlert("Error", "Could not open file: " + e.getMessage());
+            }
+        } else {
+            showAlert("Error", "File not selected or does not exist.");
+        }
+    }
+
+    private void promptAndDeleteFile(ActionEvent event) {
+        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select File to Delete");
+        fileChooser.setInitialDirectory(new File(homePath));
+
+        File file = fileChooser.showOpenDialog(stage);
+
+        if (file != null && file.exists()) {
+            boolean deleted = file.delete();
+            if (deleted) {
+                showAlert("Success", "File deleted successfully.");
+            } else {
+                showAlert("Error", "Failed to delete file.");
+            }
+        } else {
+            showAlert("Error", "File not selected or does not exist.");
+        }
+    }
+
+    private void promptAndReadFile(ActionEvent event) {
+        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Read File");
+        File file = fileChooser.showOpenDialog(stage);
+        fileChooser.setInitialDirectory(new File(homePath));
+
 
         if (file != null && file.exists()) {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
@@ -248,492 +585,3 @@ public class FileManagementController {
         }
     }
 }
-package com.mycompany.javafxapplication1;
-
-import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.Alert.AlertType;
-
-import java.io.*;
-import java.util.Optional;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.TextField;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-
-public class FileManagementController {
-
-    @FXML
-    private Button createButtonFileID;
-
-    @FXML
-    private Button updateButtonFileID;
-
-    @FXML
-    private Button deleteFileID;
-
-    @FXML
-    private Button viewFileID;
-    
-    @FXML
-    private Button switchToSecondaryButtonID;
-    
-    @FXML
-    private TextField userTextField;
-    
-    private String username;
-
-    // Main working directory for file storage
-    private final String homePath = System.getProperty("user.dir") + "/src/Files/";
-
-    public String getUsername() {
-        return this.userTextField.getText();
-    }
-    
-    public void setUser(String username){
-        this.username = username;
-        userTextField.setText(username);
-    }
-    
-    @FXML
-    private void createFileButtonAction() {
-        promptAndCreateFile();
-    }
-
-    @FXML
-    private void updateFileButtonAction(ActionEvent event) {
-        promptAndUpdateFile(event);
-    }
-
-    @FXML
-    private void deleteFileAction(ActionEvent event) {
-        promptAndDeleteFile(event);
-    }
-
-    @FXML
-    private void viewFileActon(ActionEvent event) {
-        promptAndReadFile(event);
-    }
-
-    private void promptAndCreateFile() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Create File");
-        dialog.setHeaderText("Enter the filename to create:");
-        Optional<String> result = dialog.showAndWait();
-
-        result.ifPresent(filename -> {
-            try {
-                // Path where user files are stored
-                String userDirPath = homePath + getUsername();
-                File userDir = new File(userDirPath);
-                if (!userDir.exists()) userDir.mkdirs();
-
-                // Path for the new file
-                File file = new File(userDirPath + "/" + filename);
-                if (file.exists()) {
-                    showAlert("Warning", "File already exists.");
-                } else {
-                    // Create the file using nano (using terminal)
-                    String[] cmd = {
-                        "x-terminal-emulator", "-e", "bash", "-c",
-                        "cd \"" + userDirPath + "\" && nano \"" + filename + "\""
-                    };
-                    new ProcessBuilder(cmd).start();
-
-                    // After the user creates the file, chunk it and encrypt it
-                    chunkAndEncryptFile(file, userDirPath);
-                }
-            } catch (IOException e) {
-                showAlert("Error", "Error creating file: " + e.getMessage());
-            }
-        });
-    }
-
-    // Chunk and encrypt the file
-    private void chunkAndEncryptFile(File file, String userDirectory) {
-        try {
-            // Create the directory for chunked files if it doesn't exist
-            File chunkedDir = new File(userDirectory + "/chunked_files/");
-            if (!chunkedDir.exists()) chunkedDir.mkdirs();
-
-            // Define the chunk size (e.g., 10 MB per chunk)
-            final long CHUNK_SIZE = 10 * 1024 * 1024;  // 10 MB
-            long fileSize = file.length();
-
-            try (BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
-                byte[] buffer = new byte[(int) CHUNK_SIZE];
-                int chunkCount = 0;
-                int bytesRead;
-
-                // Read and split the file into chunks
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    File chunkFile = new File(chunkedDir, file.getName() + ".part" + (++chunkCount));
-                    try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(chunkFile))) {
-                        outputStream.write(buffer, 0, bytesRead);
-                    }
-
-                    // Encrypt the chunk after it's saved
-                    encryptChunk(chunkFile, chunkedDir);
-                }
-            }
-        } catch (IOException e) {
-            showAlert("Error", "Error chunking the file: " + e.getMessage());
-        }
-    }
-
-    // Encrypt the chunk using the encryption class
-    private void encryptChunk(File chunkFile, File chunkedDir) {
-        try {
-            FileEncryptionDecryption encryptionDecryption = new FileEncryptionDecryption();
-
-            // Encrypt the chunk file
-            byte[] chunkData = Files.readAllBytes(chunkFile.toPath());
-            byte[] encryptedChunk = encryptionDecryption.encryptChunk(chunkData, "your-secret-password");
-
-            // Write the encrypted chunk to a new file
-            File encryptedChunkFile = new File(chunkedDir, chunkFile.getName() + ".enc");
-            Files.write(encryptedChunkFile.toPath(), encryptedChunk);
-
-            // Optionally delete the original chunk after encryption
-            chunkFile.delete();
-
-            showAlert("Success", "Chunk encrypted: " + encryptedChunkFile.getAbsolutePath());
-        } catch (Exception e) {
-            showAlert("Error", "Error encrypting chunk: " + e.getMessage());
-        }
-    }
-
-    private void promptAndUpdateFile(ActionEvent event) {
-        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select File to Update");
-        File file = fileChooser.showOpenDialog(stage);
-
-        if (file != null && file.exists()) {
-            String[] cmd = {
-                "x-terminal-emulator", "-e", "bash", "-c",
-                "cd \"" + file.getParent() + "\" && nano \"" + file.getName() + "\""
-            };
-            try {
-                new ProcessBuilder(cmd).start();
-            } catch (IOException e) {
-                showAlert("Error", "Could not open file: " + e.getMessage());
-            }
-        } else {
-            showAlert("Error", "File not selected or does not exist.");
-        }
-    }
-
-    private void promptAndDeleteFile(ActionEvent event) {
-        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select File to Delete");
-        File file = fileChooser.showOpenDialog(stage);
-
-        if (file != null && file.exists()) {
-            boolean deleted = file.delete();
-            if (deleted) {
-                showAlert("Success", "File deleted successfully.");
-            } else {
-                showAlert("Error", "Failed to delete file.");
-            }
-        } else {
-            showAlert("Error", "File not selected or does not exist.");
-        }
-    }
-
-    private void promptAndReadFile(ActionEvent event) {
-        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Read File");
-        File file = fileChooser.showOpenDialog(stage);
-
-        if (file != null && file.exists()) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
-                StringBuilder content = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    content.append(line).append("\n");
-                }
-                showAlert("File Contents", content.toString());
-            } catch (IOException e) {
-                showAlert("Error", "Could not read file: " + e.getMessage());
-            }
-        } else {
-            showAlert("Error", "No file selected or file does not exist.");
-        }
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    @FXML
-    public void switchToSecondary(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
-            Parent root = loader.load();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.show();
-
-            ((Stage) switchToSecondaryButtonID.getScene().getWindow()).close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
-package com.mycompany.javafxapplication1;
-
-import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.Alert.AlertType;
-
-import java.io.*;
-import java.util.Optional;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.TextField;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-
-public class FileManagementController {
-
-    @FXML
-    private Button createButtonFileID;
-
-    @FXML
-    private Button updateButtonFileID;
-
-    @FXML
-    private Button deleteFileID;
-
-    @FXML
-    private Button viewFileID;
-    
-    @FXML
-    private Button switchToSecondaryButtonID;
-    
-    @FXML
-    private TextField userTextField;
-    
-    private String username;
-
-    // Main working directory for file storage
-    private final String homePath = System.getProperty("user.dir") + "/src/Files/";
-
-    public String getUsername() {
-        return this.userTextField.getText();
-    }
-    
-    public void setUser(String username){
-        this.username = username;
-        userTextField.setText(username);
-    }
-    
-    @FXML
-    private void createFileButtonAction() {
-        promptAndCreateFile();
-    }
-
-    @FXML
-    private void updateFileButtonAction(ActionEvent event) {
-        promptAndUpdateFile(event);
-    }
-
-    @FXML
-    private void deleteFileAction(ActionEvent event) {
-        promptAndDeleteFile(event);
-    }
-
-    @FXML
-    private void viewFileActon(ActionEvent event) {
-        promptAndReadFile(event);
-    }
-
-    private void promptAndCreateFile() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Create File");
-        dialog.setHeaderText("Enter the filename to create:");
-        Optional<String> result = dialog.showAndWait();
-
-        result.ifPresent(filename -> {
-            try {
-                // Path where user files are stored
-                String userDirPath = homePath + getUsername();
-                File userDir = new File(userDirPath);
-                if (!userDir.exists()) userDir.mkdirs();
-
-                // Path for the new file
-                File file = new File(userDirPath + "/" + filename);
-                if (file.exists()) {
-                    showAlert("Warning", "File already exists.");
-                } else {
-                    // Create the file using nano (using terminal)
-                    String[] cmd = {
-                        "x-terminal-emulator", "-e", "bash", "-c",
-                        "cd \"" + userDirPath + "\" && nano \"" + filename + "\""
-                    };
-                    new ProcessBuilder(cmd).start();
-
-                    // After the user creates the file, chunk it and encrypt it
-                    chunkAndEncryptFile(file, userDirPath);
-                }
-            } catch (IOException e) {
-                showAlert("Error", "Error creating file: " + e.getMessage());
-            }
-        });
-    }
-
-    // Chunk and encrypt the file
-    private void chunkAndEncryptFile(File file, String userDirectory) {
-        try {
-            // Create the directory for chunked files if it doesn't exist
-            File chunkedDir = new File(userDirectory + "/chunked_files/");
-            if (!chunkedDir.exists()) chunkedDir.mkdirs();
-
-            // Define the chunk size (e.g., 10 MB per chunk)
-            final long CHUNK_SIZE = 10 * 1024 * 1024;  // 10 MB
-            long fileSize = file.length();
-
-            try (BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
-                byte[] buffer = new byte[(int) CHUNK_SIZE];
-                int chunkCount = 0;
-                int bytesRead;
-
-                // Read and split the file into chunks
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    File chunkFile = new File(chunkedDir, file.getName() + ".part" + (++chunkCount));
-                    try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(chunkFile))) {
-                        outputStream.write(buffer, 0, bytesRead);
-                    }
-
-                    // Encrypt the chunk after it's saved
-                    encryptChunk(chunkFile, chunkedDir);
-                }
-            }
-        } catch (IOException e) {
-            showAlert("Error", "Error chunking the file: " + e.getMessage());
-        }
-    }
-
-    // Encrypt the chunk using the encryption class
-    private void encryptChunk(File chunkFile, File chunkedDir) {
-        try {
-            FileEncryptionDecryption encryptionDecryption = new FileEncryptionDecryption();
-
-            // Encrypt the chunk file
-            byte[] chunkData = Files.readAllBytes(chunkFile.toPath());
-            byte[] encryptedChunk = encryptionDecryption.encryptChunk(chunkData, "your-secret-password");
-
-            // Write the encrypted chunk to a new file
-            File encryptedChunkFile = new File(chunkedDir, chunkFile.getName() + ".enc");
-            Files.write(encryptedChunkFile.toPath(), encryptedChunk);
-
-            // Optionally delete the original chunk after encryption
-            chunkFile.delete();
-
-            showAlert("Success", "Chunk encrypted: " + encryptedChunkFile.getAbsolutePath());
-        } catch (Exception e) {
-            showAlert("Error", "Error encrypting chunk: " + e.getMessage());
-        }
-    }
-
-    private void promptAndUpdateFile(ActionEvent event) {
-        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select File to Update");
-        File file = fileChooser.showOpenDialog(stage);
-
-        if (file != null && file.exists()) {
-            String[] cmd = {
-                "x-terminal-emulator", "-e", "bash", "-c",
-                "cd \"" + file.getParent() + "\" && nano \"" + file.getName() + "\""
-            };
-            try {
-                new ProcessBuilder(cmd).start();
-            } catch (IOException e) {
-                showAlert("Error", "Could not open file: " + e.getMessage());
-            }
-        } else {
-            showAlert("Error", "File not selected or does not exist.");
-        }
-    }
-
-    private void promptAndDeleteFile(ActionEvent event) {
-        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select File to Delete");
-        File file = fileChooser.showOpenDialog(stage);
-
-        if (file != null && file.exists()) {
-            boolean deleted = file.delete();
-            if (deleted) {
-                showAlert("Success", "File deleted successfully.");
-            } else {
-                showAlert("Error", "Failed to delete file.");
-            }
-        } else {
-            showAlert("Error", "File not selected or does not exist.");
-        }
-    }
-
-    private void promptAndReadFile(ActionEvent event) {
-        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Read File");
-        File file = fileChooser.showOpenDialog(stage);
-
-        if (file != null && file.exists()) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
-                StringBuilder content = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    content.append(line).append("\n");
-                }
-                showAlert("File Contents", content.toString());
-            } catch (IOException e) {
-                showAlert("Error", "Could not read file: " + e.getMessage());
-            }
-        } else {
-            showAlert("Error", "No file selected or file does not exist.");
-        }
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    @FXML
-    public void switchToSecondary(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("secondary.fxml"));
-            Parent root = loader.load();
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.show();
-
-            ((Stage) switchToSecondaryButtonID.getScene().getWindow()).close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
-

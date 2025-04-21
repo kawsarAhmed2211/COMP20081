@@ -22,13 +22,14 @@ public class App extends Application {
         myObj.log("-------- Simple Tutorial on how to make JDBC connection to SQLite DB ------------");
         myObj.log("\n---------- Drop table ----------");
 //        try {
-//            myObj.deleteTable();
+//            myObj.deleteUserTable();
 //        } catch (ClassNotFoundException ex) {
 //            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
 //        }
         myObj.log("\n---------- Create table ----------");
         try {
-            myObj.createTable();
+            myObj.createUserTable();
+            myObj.createFilesTable();
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
         }

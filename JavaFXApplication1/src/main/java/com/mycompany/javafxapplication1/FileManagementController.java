@@ -43,10 +43,14 @@ public class FileManagementController {
     private String username;
 
     // Main working directory for file storage
-    private final String homePath = System.getProperty("user.dir") + "/src/Files";
+    private final String homePath = System.getProperty("user.dir") + "/src/Files/";
     
     public String getUsername() {
         return this.userTextField.getText();
+    }
+    
+    public String getHomePath(){
+        return this.homePath;
     }
     
     public void setUser(String username){
@@ -73,30 +77,40 @@ public class FileManagementController {
     private void viewFileActon(ActionEvent event) {
         promptAndReadFile(event);
     }
+private void promptAndCreateFile() {
+    TextInputDialog dialog = new TextInputDialog();
+    dialog.setTitle("Create File");
+    dialog.setHeaderText("Enter the filename to create:");
+    Optional<String> result = dialog.showAndWait();
 
-    private void promptAndCreateFile() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Create File");
-        dialog.setHeaderText("Enter the filename to create:");
-        Optional<String> result = dialog.showAndWait();
+    result.ifPresent(filename -> {
+        try {
+            File dir = new File(homePath + getUsername());
+            if (!dir.exists()) dir.mkdirs();
 
-        result.ifPresent(filename -> {
-            try {
-                File dir = new File(homePath);
-                if (!dir.exists()) dir.mkdirs();
-
-                File file = new File(homePath + "/" + filename);
-                if (file.exists()) {
-                    showAlert("Warning", "File already exists.");
-                } else {
-                    String[] cmd = {"x-terminal-emulator", "-e", "bash", "-c", "cd \"" + homePath + "\" && nano \"" + filename + "\""};
-                    new ProcessBuilder(cmd).start();
+            File file = new File(homePath + getUsername() + "/" + filename);
+            if (file.exists()) {
+                showAlert("Warning", "File already exists.");
+            } else {
+                // Create the file before opening nano (optional, but good for control)
+                boolean created = file.createNewFile();
+                if (!created) {
+                    showAlert("Error", "Failed to create the file.");
+                    return;
                 }
-            } catch (IOException e) {
-                showAlert("Error", "Error creating file: " + e.getMessage());
+
+                String[] cmd = {
+                    "x-terminal-emulator", "-e", "bash", "-c",
+                    "nano \"" + file.getAbsolutePath() + "\""
+                };
+                new ProcessBuilder(cmd).start();
             }
-        });
-    }
+        } catch (IOException e) {
+            showAlert("Error", "Error creating file: " + e.getMessage());
+        }
+    });
+}
+
 
     private void promptAndUpdateFile(ActionEvent event) {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
@@ -111,6 +125,8 @@ public class FileManagementController {
                 "x-terminal-emulator", "-e", "bash", "-c",
                 "cd \"" + file.getParent() + "\" && nano \"" + file.getName() + "\""
             };
+            FileChunking fileChunking = new FileChunking();
+                    fileChunking.splitFileIntoChunks(file);
             try {
                 new ProcessBuilder(cmd).start();
             } catch (IOException e) {
@@ -125,7 +141,7 @@ public class FileManagementController {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select File to Delete");
-        fileChooser.setInitialDirectory(new File(homePath + "/"+getUsername()));
+        fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
 
         File file = fileChooser.showOpenDialog(stage);
 
@@ -146,7 +162,7 @@ public class FileManagementController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Read File");
         File file = fileChooser.showOpenDialog(stage);
-        fileChooser.setInitialDirectory(new File(homePath+"/"+ getUsername()));
+        fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
 
 
         if (file != null && file.exists()) {

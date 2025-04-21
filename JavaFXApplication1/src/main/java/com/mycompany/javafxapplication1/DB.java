@@ -11,6 +11,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,7 +25,9 @@ public class DB {
     private static final String DB_URL = "jdbc:sqlite:comp20081.db";
     private static final int TIMEOUT = 30;
     private static final String TABLE_NAME = "Users";
-
+    private String dataBaseFilesTable = "Files";//add delete attribute
+    private String dataBaseACLTable = "ACL";
+    private String dataBaseAuditTable = "Audit";
     private final Random random = new SecureRandom();
     private final String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     private final int iterations = 10000;
@@ -50,17 +54,17 @@ public class DB {
         }
     }
 
-    public void createTable() throws ClassNotFoundException {
+    public void createUserTable() throws ClassNotFoundException {
         String createQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (id INTEGER PRIMARY KEY AUTOINCREMENT, name String, password String)";
         executeUpdate(createQuery);
     }
 
-    public void deleteTable() throws ClassNotFoundException {
+    public void deleteUserTable() throws ClassNotFoundException {
         String deleteQuery = "DROP TABLE IF EXISTS " + TABLE_NAME;
         executeUpdate(deleteQuery);
     }
 
-    public void addUser(String username, String password) throws InvalidKeySpecException, ClassNotFoundException {
+    public void addUserToTable(String username, String password) throws InvalidKeySpecException, ClassNotFoundException {
         String addQuery = "INSERT INTO " + TABLE_NAME + " (name, password) VALUES (?, ?)";
         try (Connection connection = getConnection();
              PreparedStatement preparedstatement = connection.prepareStatement(addQuery)) {
@@ -92,7 +96,7 @@ public class DB {
         return false;
     }
 
-    public void updatePassword(String username, String oldPassword, String newPassword) throws InvalidKeySpecException, ClassNotFoundException {
+    public void updateUserPasswordTable(String username, String oldPassword, String newPassword) throws InvalidKeySpecException, ClassNotFoundException {
         if (!validateUser(username, oldPassword)) {
             System.out.println("Incorrect current password. Try again.");
             return;
@@ -117,7 +121,7 @@ public class DB {
         }
     }
 
-    public ObservableList<User> getAllUsers() throws ClassNotFoundException {
+    public ObservableList<User> getAllUsersFromUserTable() throws ClassNotFoundException {
         ObservableList<User> users = FXCollections.observableArrayList();
         String query = "SELECT name, password FROM " + TABLE_NAME;
 
@@ -186,4 +190,195 @@ public class DB {
     public String getTableName() {
         return TABLE_NAME;
     }
+    
+    public void createFilesTable() throws ClassNotFoundException{
+            String query = "CREATE TABLE IF NOT EXISTS " + dataBaseFilesTable + " (" +
+            "file_name TEXT PRIMARY KEY, " +
+            "fileSize INTEGER, " +
+            "fileOwner TEXT, " +
+            "encryptionKey TEXT, " +
+            "fileCreationDate TEXT, " +
+            "fileModificationDate TEXT, " +
+            "delete_flag INTEGER DEFAULT 0)";
+    executeUpdate(query);
+    }
+    
+    public void addDataToFilesTable(String file_name, long fileSize, String fileOwner)
+            throws InvalidKeySpecException, ClassNotFoundException {
+
+        LocalDate currentDate = LocalDate.now();
+        String fileCreationDate = currentDate.format(DateTimeFormatter.ISO_DATE);
+        String encryptionKey = generateSalt(32);
+
+        String query = "INSERT INTO " + dataBaseFilesTable +
+                " (file_name, fileSize, fileOwner, encryptionKey, fileCreationDate, fileModificationDate) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedstatement = connection.prepareStatement(query)) {
+
+            preparedstatement.setString(1, file_name);
+            preparedstatement.setLong(2, fileSize);
+            preparedstatement.setString(3, fileOwner);
+            preparedstatement.setString(4, encryptionKey);
+            preparedstatement.setString(5, fileCreationDate);
+            preparedstatement.setString(6, fileCreationDate);
+
+            preparedstatement.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void deleteUserFilesTable(String file_name) throws ClassNotFoundException {
+        String deleteQuery = "delete from " + dataBaseFilesTable + " Where file_name = '" + file_name + "'";
+        executeUpdate(deleteQuery);
+    }
+    
+    public void updateDataInFilesTable(String file_name, long fileSize, boolean delete_flag)
+        throws InvalidKeySpecException, ClassNotFoundException {
+
+        int d_flag = delete_flag ? 1 : 0;
+        String now = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+
+        String updateQuery = "UPDATE " + dataBaseFilesTable + " SET " +
+                "fileModificationDate = ?, fileSize = ?, delete_flag = ? " +
+                "WHERE file_name = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedSatement = connection.prepareStatement(updateQuery)) {
+
+            preparedSatement.setString(1, now);
+            preparedSatement.setLong(2, fileSize);
+            preparedSatement.setInt(3, d_flag);
+            preparedSatement.setString(4, file_name);
+
+            preparedSatement.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+     
+    public ObservableList<FilesInitialisationClass> getDataFromFilesTable() throws ClassNotFoundException {
+        ObservableList<FilesInitialisationClass> files = FXCollections.observableArrayList();
+        String query = "SELECT * FROM " + dataBaseFilesTable;
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            stmt.setQueryTimeout(TIMEOUT);
+            ResultSet rs = stmt.executeQuery(query);
+
+            while (rs.next()) {
+                LocalDate creationDate = LocalDate.parse(rs.getString("fileCreationDate"), DateTimeFormatter.ISO_DATE);
+                LocalDate modificationDate = LocalDate.parse(rs.getString("fileModificationDate"), DateTimeFormatter.ISO_DATE);
+                boolean deleteFlag = rs.getInt("delete_flag") != 0;
+
+                files.add(new FilesInitialisationClass(
+                    rs.getString("file_name"),
+                    rs.getLong("fileSize"),
+                    rs.getString("fileOwner"),
+                    rs.getString("encryptionKey"),
+                    creationDate,
+                    modificationDate,
+                    deleteFlag
+                ));
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return files;
+    }
+    
+    /*public ObservableList<FilesInitialisationClass> getAllDataFromFilesTable() throws ClassNotFoundException {
+        ObservableList<FilesInitialisationClass> result = FXCollections.observableArrayList();
+        String query = "SELECT * FROM " + this.dataBaseFilesTable;
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            stmt.setQueryTimeout(TIMEOUT);
+            ResultSet rs = stmt.executeQuery(query);
+
+            while (rs.next()) {
+                LocalDate fileCreationDate = LocalDate.parse(rs.getString("fileCreationDate"), DateTimeFormatter.ISO_DATE);
+                LocalDate fileModificationDate = LocalDate.parse(rs.getString("fileModificationDate"), DateTimeFormatter.ISO_DATE);
+                boolean deleteFlag = rs.getInt("delete_flag") != 0;
+
+                result.add(new FilesInitialisationClass(
+                    rs.getString("file_name"),
+                    rs.getLong("fileSize"),
+                    rs.getString("fileOwner"),
+                    rs.getString("encryption_key"),
+                    fileCreationDate,
+                    fileModificationDate,
+                    deleteFlag
+                ));
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return result;
+    }*/
+
+    public FilesInitialisationClass getFileDataFromFilesTable(String filename) throws ClassNotFoundException {
+        FilesInitialisationClass result = null;
+        String query = "SELECT * FROM " + this.dataBaseFilesTable + " WHERE file_name = ?";
+
+        try (Connection conn =getConnection();
+             PreparedStatement preparedStatement = conn.prepareStatement(query)) {
+
+            preparedStatement.setQueryTimeout(TIMEOUT);
+            preparedStatement.setString(1, filename);
+            ResultSet rs = preparedStatement.executeQuery();
+
+            if (rs.next()) {
+                LocalDate creationDate = LocalDate.parse(rs.getString("creation_date"), DateTimeFormatter.ISO_DATE);
+                LocalDate modificationDate = LocalDate.parse(rs.getString("modification_date"), DateTimeFormatter.ISO_DATE);
+                boolean deleteFlag = rs.getInt("delete_flag") != 0;
+
+                result = new FilesInitialisationClass(
+                    rs.getString("file_name"),
+                    rs.getLong("size"),
+                    rs.getString("owner"),
+                    rs.getString("encryption_key"),
+                    creationDate,
+                    modificationDate,
+                    deleteFlag
+                );
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return result;
+    }
+
+    public boolean isFileNameUnavailable(String fileName) throws ClassNotFoundException {
+        boolean unavailable = false;
+        String query = "SELECT file_name FROM " + this.dataBaseFilesTable + " WHERE file_name = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement preparedStatement = conn.prepareStatement(query)) {
+
+            preparedStatement.setQueryTimeout(TIMEOUT);
+            preparedStatement.setString(1, fileName);
+            ResultSet rs = preparedStatement.executeQuery();
+
+            unavailable = rs.next();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return unavailable;
+    }
+
 }
