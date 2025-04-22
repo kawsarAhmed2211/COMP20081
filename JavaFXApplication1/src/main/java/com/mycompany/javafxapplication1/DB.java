@@ -173,15 +173,20 @@ public class DB {
         return DriverManager.getConnection(DB_URL);
     }
 
-    private void executeUpdate(String query) throws ClassNotFoundException {
-        try (Connection connection = getConnection();
-             Statement statement = connection.createStatement()) {
-            statement.setQueryTimeout(TIMEOUT);
-            statement.executeUpdate(query);
-        } catch (SQLException ex) {
-            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+    private void executeUpdate(String query, String... params) throws ClassNotFoundException {
+    try (Connection connection = getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+        for (int i = 0; i < params.length; i++) {
+            preparedStatement.setString(i + 1, params[i]);
         }
+
+        preparedStatement.executeUpdate();
+    } catch (SQLException ex) {
+        Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
     }
+}
+
 
     public void log(String message) {
         System.out.println(message);
@@ -380,5 +385,46 @@ public class DB {
 
         return unavailable;
     }
+    
+    public void createACLDatabaseTable() throws ClassNotFoundException{
+        String query = "CREATE TABLE IF NOT EXISTS access_control_list (\n" +
+        "    Granter TEXT,\n" +
+        "    Grantee TEXT,\n" +
+        "    file_name TEXT,\n" +
+        "    Permission TEXT,\n" +
+        "    PRIMARY KEY (Grantee, file_name),\n" +
+        "    FOREIGN KEY (file_name) REFERENCES files(file_name) ON DELETE CASCADE\n" +
+        ")";
+        executeUpdate(query);
+    }
+    
+    public void addDataToACLTable(String granter, String grantee, String file_name, String permission)
+    throws InvalidKeySpecException, ClassNotFoundException{
+        String query = "INSERT INTO " + dataBaseACLTable +
+                " (Granter, Grantee, file_name, Permission) " +
+                "VALUES (?, ?, ?, ?)";
+        try (Connection connection = getConnection();
+             PreparedStatement preparedstatement = connection.prepareStatement(query)) {
+
+            preparedstatement.setString(1, granter);
+            preparedstatement.setString(2, grantee);
+            preparedstatement.setString(3, file_name);
+            preparedstatement.setString(4, permission);
+
+            preparedstatement.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }       
+    }
+    
+    public void deleteDataFromACLTable(String grantee, String file_name)
+            throws InvalidKeySpecException, ClassNotFoundException{
+        String query = "DELETE FROM " + dataBaseACLTable +
+               " WHERE file_name = '" + file_name + "' AND grantee = '" + grantee + "'";
+
+        executeUpdate(query, file_name, grantee);
+    }
+    
+    
 
 }
