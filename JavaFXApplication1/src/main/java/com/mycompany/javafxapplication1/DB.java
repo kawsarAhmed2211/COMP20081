@@ -196,17 +196,18 @@ public class DB {
         return TABLE_NAME;
     }
     
-    public void createFilesTable() throws ClassNotFoundException{
-            String query = "CREATE TABLE IF NOT EXISTS " + dataBaseFilesTable + " (" +
-            "file_name TEXT PRIMARY KEY, " +
-            "fileSize INTEGER, " +
-            "fileOwner TEXT, " +
-            "encryptionKey TEXT, " +
-            "fileCreationDate TEXT, " +
-            "fileModificationDate TEXT, " +
-            "delete_flag INTEGER DEFAULT 0)";
+    public void createFilesTable() throws ClassNotFoundException {
+    String query = "CREATE TABLE IF NOT EXISTS " + dataBaseFilesTable + " (" +
+        "file_name TEXT PRIMARY KEY, " +
+        "fileSize INTEGER, " +
+        "fileOwner TEXT, " +
+        "encryptionKey TEXT, " +
+        "fileCreationDate TEXT, " +
+        "fileModificationDate TEXT, " +
+        "delete_flag INTEGER DEFAULT 0, " +
+        "FOREIGN KEY(fileOwner) REFERENCES users(username) ON DELETE CASCADE)";
     executeUpdate(query);
-    }
+}
     
     public void addDataToFilesTable(String file_name, long fileSize, String fileOwner)
             throws InvalidKeySpecException, ClassNotFoundException {
@@ -386,36 +387,29 @@ public class DB {
         return unavailable;
     }
     
-    public void createACLDatabaseTable() throws ClassNotFoundException{
-        String query = "CREATE TABLE IF NOT EXISTS access_control_list (\n" +
+    public void createACLDatabaseTable() throws ClassNotFoundException {
+    String query = "CREATE TABLE IF NOT EXISTS access_control_list (\n" +
         "    Granter TEXT,\n" +
         "    Grantee TEXT,\n" +
         "    file_name TEXT,\n" +
+        "    fileOwner TEXT,\n" +
         "    Permission TEXT,\n" +
         "    PRIMARY KEY (Grantee, file_name),\n" +
-        "    FOREIGN KEY (file_name) REFERENCES files(file_name) ON DELETE CASCADE\n" +
+        "    FOREIGN KEY (file_name) REFERENCES files(file_name) ON DELETE CASCADE,\n" +
+        "    FOREIGN KEY (fileOwner) REFERENCES users(username) ON DELETE CASCADE\n" +
         ")";
-        executeUpdate(query);
-    }
+    executeUpdate(query);
+}
+
     
-    public void addDataToACLTable(String granter, String grantee, String file_name, String permission)
-    throws InvalidKeySpecException, ClassNotFoundException{
+    public void addDataToACLTable(String granter, String grantee, String file_name, String fileOwner, String permission)
+    throws InvalidKeySpecException, ClassNotFoundException {
         String query = "INSERT INTO " + dataBaseACLTable +
-                " (Granter, Grantee, file_name, Permission) " +
-                "VALUES (?, ?, ?, ?)";
-        try (Connection connection = getConnection();
-             PreparedStatement preparedstatement = connection.prepareStatement(query)) {
-
-            preparedstatement.setString(1, granter);
-            preparedstatement.setString(2, grantee);
-            preparedstatement.setString(3, file_name);
-            preparedstatement.setString(4, permission);
-
-            preparedstatement.executeUpdate();
-        } catch (SQLException ex) {
-            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
-        }       
+                " (Granter, Grantee, file_name, fileOwner, Permission) " +
+                "VALUES (?, ?, ?, ?, ?)";
+        executeUpdate(query, granter, grantee, file_name, fileOwner, permission);
     }
+
     
     public void deleteDataFromACLTable(String grantee, String file_name)
             throws InvalidKeySpecException, ClassNotFoundException{
@@ -425,6 +419,115 @@ public class DB {
         executeUpdate(query, file_name, grantee);
     }
     
+    public ACL getACLDataForAFileAndUserFromACLTable(String grantee, String file_name) 
+        throws ClassNotFoundException {
+        ACL result = null;
+        String query = "SELECT * FROM " + this.dataBaseACLTable + 
+                " WHERE file_name = ? AND grantee = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement preparedStatement = conn.prepareStatement(query)) {
+
+            preparedStatement.setQueryTimeout(TIMEOUT);
+            preparedStatement.setString(1, file_name);
+            preparedStatement.setString(2, grantee);
+            ResultSet rs = preparedStatement.executeQuery();
+
+            if (rs.next()) {
+                result = new ACL(
+                    rs.getString("granter"),
+                    rs.getString("grantee"),
+                    rs.getString("file_name"),
+                    rs.getString("fileOwner"),
+                    rs.getString("permission")
+                );
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
     
+    public ObservableList<ACL> getDataFromACLTable() throws ClassNotFoundException {
+    ObservableList<ACL> acl = FXCollections.observableArrayList();
+        String query = "SELECT * FROM " + dataBaseACLTable;
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            stmt.setQueryTimeout(TIMEOUT);
+            ResultSet rs = stmt.executeQuery(query);
+
+            while (rs.next()) {
+                acl.add(new ACL(
+                    rs.getString("granter"),
+                    rs.getString("grantee"),
+                    rs.getString("file_name"),
+                    rs.getString("fileOwner"),
+                    rs.getString("permission")
+                ));
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return acl;
+    }
+    
+    
+    public void createAudiTrailTable()throws ClassNotFoundException{
+        String query = "CREATE TABLE IF NOT EXISTS " + dataBaseAuditTable + " (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "user TEXT, " +
+                "modification TEXT, " +
+                "file_name TEXT, " +
+                "dateOfModification TEXT, " +
+                "FOREIGN KEY (user) REFERENCES users(username) ON DELETE CASCADE" +
+                ")";
+        executeUpdate(query);
+    }
+    
+        public void addAuditTrailData(String username, String modification, String fileName, String dateOfModification)
+            throws ClassNotFoundException {
+            String query = "INSERT INTO " + dataBaseAuditTable + 
+                           " (user, modification, file_name, dateOfModification) " +
+                           "VALUES (?, ?, ?, ?)";
+            executeUpdate(query, username, modification, fileName, dateOfModification);
+        }
+        
+        public ObservableList<AuditTrail> getDataFromAuditTrail() throws ClassNotFoundException {
+            ObservableList<AuditTrail> auditTrails = FXCollections.observableArrayList();
+            String query = "SELECT user, modification, file_name, dateOfModification FROM " + dataBaseAuditTable;
+
+            try (Connection conn = getConnection();
+                 Statement stmt = conn.createStatement()) {
+
+                stmt.setQueryTimeout(TIMEOUT);
+                ResultSet rs = stmt.executeQuery(query);
+
+                while (rs.next()) {
+                    String username = rs.getString("user");
+                    String modification = rs.getString("modification");
+                    String fileName = rs.getString("file_name");
+                    String dateStr = rs.getString("dateOfModification");
+
+                    LocalDate dateAfterModified = LocalDate.parse(dateStr); // assumes format is yyyy-MM-dd
+
+                    auditTrails.add(new AuditTrail(username, modification, fileName, dateAfterModified));
+                }
+
+            } catch (SQLException ex) {
+                Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            return auditTrails;
+        }
+
+
+
+
+
 
 }

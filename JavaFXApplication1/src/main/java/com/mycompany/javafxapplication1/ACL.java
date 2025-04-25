@@ -8,16 +8,19 @@ package com.mycompany.javafxapplication1;
  *
  * @author kawsar
  */
+
 public class ACL {
     private String granter;
     private String grantee;
     private String fileName;    
+    private String fileOwner;
     private String permission;
-    
-    public ACL(String granter, String grantee, String file_name, String permission) {
+
+    public ACL(String granter, String grantee, String fileName, String fileOwner, String permission) {
         this.granter = granter;
         this.grantee = grantee;
-        this.fileName = file_name;
+        this.fileName = fileName;
+        this.fileOwner = fileOwner;
         this.permission = permission;
     }
 
@@ -44,7 +47,15 @@ public class ACL {
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
-    
+
+    public String getFileOwner() {
+        return fileOwner;
+    }
+
+    public void setFileOwner(String fileOwner) {
+        this.fileOwner = fileOwner;
+    }
+
     public String getPermission() {
         return permission;
     }
@@ -53,4 +64,3 @@ public class ACL {
         this.permission = permission;
     }
 }
-

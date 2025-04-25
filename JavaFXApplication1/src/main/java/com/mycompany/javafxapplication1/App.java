@@ -30,6 +30,8 @@ public class App extends Application {
         try {
             myObj.createUserTable();
             myObj.createFilesTable();
+            myObj.createACLDatabaseTable();
+            myObj.createAudiTrailTable();
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
         }
