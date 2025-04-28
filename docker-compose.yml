@@ -1,0 +1,70 @@
+version: '3'
+services:
+  file-user-container1:
+    build:
+      context: ./file-user-container  
+      dockerfile: Dockerfile
+    image: file-user-container1:latest  
+    command: /usr/sbin/sshd -D
+    ports:
+      - "5000:22"
+    volumes:
+      - ./data:/data
+
+  file-user-container2:
+    build:
+      context: ./file-user-container  # Path to the folder containing the Dockerfile
+      dockerfile: Dockerfile
+      
+    image: file-user-container2:latest  
+    command: /usr/sbin/sshd -D
+    ports:
+      - "5001:22"
+    volumes:
+      - ./data:/data
+
+  file-user-container3:
+    build:
+      context: ./file-user-container  # Path to the folder containing the Dockerfile
+      dockerfile: Dockerfile
+    image: file-user-container3:latest  
+    command: /usr/sbin/sshd -D
+    ports:
+      - "5002:22"
+    volumes:
+      - ./data:/data
+
+  file-user-container4:
+    build:
+      context: ./file-user-container  # Path to the folder containing the Dockerfile
+      dockerfile: Dockerfile
+    image: file-user-container4:latest  
+    command: /usr/sbin/sshd -D
+    ports:
+      - "5003:22"
+    volumes:
+      - ./data:/data
+
+  file-user-container5:
+    build:
+      context: ./file-user-container  # Path to the folder containing the Dockerfile
+      dockerfile: Dockerfile
+    image: file-user-container5:latest 
+    command: /usr/sbin/sshd -D
+    ports:
+      - "5004:22"
+    volumes:
+      - ./data:/data
+      
+  file-user-container6:
+    build:
+      context: ./file-user-container  # Path to the folder containing the Dockerfile
+      dockerfile: Dockerfile
+    image: file-user-container6:latest 
+    command: /usr/sbin/sshd -D
+    ports:
+      - "5005:22"
+    volumes:
+      - ./data:/data
+      
+   
