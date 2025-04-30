@@ -1,18 +1,21 @@
-FROM ubuntu:latest
+FROM ubuntu:24.04
 
 # Install SSH server
-RUN apt-get update && apt-get install -y openssh-server
+RUN apt-get update && apt-get install -y openssh-server nano
 
-# Create the necessary directories and set permissions
-RUN mkdir -p /run/sshd && chmod 700 /run/sshd
+# Set root password (you can choose your own password here)
+RUN echo "root:rootpassword" | chpasswd
 
-RUN echo 'root:yourpassword' | chpasswd
+# Allow root login and password authentication by updating sshd_config
+RUN sed -i 's/#\?PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#\?PasswordAuthentication .*/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#\?KbdInteractiveAuthentication .*/KbdInteractiveAuthentication no/' /etc/ssh/sshd_config
 
-# Generate SSH host keys if not present
-RUN ssh-keygen -A
+# Create SSH directory and start the SSH service
+RUN mkdir /var/run/sshd
 
-# Expose the SSH port
+# Expose SSH port
 EXPOSE 22
 
-# Start the SSH daemon
+# Start SSH server
 CMD ["/usr/sbin/sshd", "-D"]

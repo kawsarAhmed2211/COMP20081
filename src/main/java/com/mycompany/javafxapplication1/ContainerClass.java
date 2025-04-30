@@ -4,6 +4,12 @@
  */
 package com.mycompany.javafxapplication1;
 
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpException;
 import java.io.IOException;
 import java.lang.ProcessBuilder;
 import java.lang.Process;
@@ -141,6 +147,157 @@ public class ContainerClass {
             e.printStackTrace();
             
         }
+    }
+    
+    public void getFile(FilesInitialisationClass fileObj){
+        int x = 0;
+        for (int i = 0; i < working_containers.length; i++) {
+            if(working_containers[i]){
+               getFileChunk(fileObj.getFileName()+".zip",i,fileChunkNO(x));
+                x++;
+                }
+            }
+        unchunkfile("temp/"+fileObj.getFileName()+".zip");
+        unzipMyfile(fileObj);
+    }
+        
+    public void getFileChunk(String fileName, int number, String chunkNumber) {
+        String localFile = "temp/" + fileName + chunkNumber;
+        String remoteFile = "/root/" + fileName + chunkNumber;
+
+        Session session = null;
+        Channel channel = null;
+
+        try {
+            JSch jsch = new JSch();
+            session = jsch.getSession(USERNAME[number], REMOTE_HOST[number], REMOTE_PORT[number]);
+            session.setPassword(PASSWORD[number]);
+            java.util.Properties config = new java.util.Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+            session.connect(SESSION_TIMEOUT);
+
+            channel = session.openChannel("sftp");
+            channel.connect(CHANNEL_TIMEOUT);
+            ChannelSftp sftpChannel = (ChannelSftp) channel;
+
+            // Perform the actual file download (SFTP GET)
+            sftpChannel.get(remoteFile, localFile);
+            System.out.println("Downloaded: " + remoteFile + " -> " + localFile);
+
+            sftpChannel.exit(); // Clean exit from channel
+        } catch (JSchException | SftpException e) {
+            e.printStackTrace();
+        } finally {
+            if (channel != null && channel.isConnected()) {
+                channel.disconnect();
+            }
+            if (session != null && session.isConnected()) {
+                session.disconnect();
+            }
+        }
+    }
+    
+    public void sendFile(FilesInitialisationClass fileObj){
+        int x = 0;
+        for (int i = 0; i < working_containers.length; i++) {
+            if(working_containers[i]){
+                sendFileChunk(fileObj.getFileName()+".zip",i,fileChunkNO(x));
+                x++;
+            }
+        }
+    }
+    
+    public void sendFileChunk(String fileName, int number, String chunkNumber) {
+        String localFile = "temp/" + fileName + chunkNumber;
+        String remoteFile = "/root/" + fileName + chunkNumber;
+
+        Session session = null;
+        Channel channel = null;
+
+        try {
+            JSch jsch = new JSch();
+            session = jsch.getSession(USERNAME[number], REMOTE_HOST[number], REMOTE_PORT[number]);
+            session.setPassword(PASSWORD[number]);
+            java.util.Properties config = new java.util.Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+            session.connect(SESSION_TIMEOUT);
+
+            channel = session.openChannel("sftp");
+            channel.connect(CHANNEL_TIMEOUT);
+            ChannelSftp sftpChannel = (ChannelSftp) channel;
+
+            sftpChannel.put(localFile, remoteFile);
+            System.out.println("Uploaded " + localFile + " to " + remoteFile);
+
+            sftpChannel.exit();
+        } catch (JSchException | SftpException e) {
+            e.printStackTrace();
+        } finally {
+            if (channel != null && channel.isConnected()) {
+                channel.disconnect();
+            }
+            if (session != null && session.isConnected()) {
+                session.disconnect();
+            }
+        }
+    }
+
+    
+
+    public void deleteFile(FilesInitialisationClass fileObj){
+        int x = 0;
+        for (int i = 0; i < working_containers.length; i++) {
+            if(working_containers[i]){
+                deleteFileChunk(fileObj.getFileName()+".zip",i,fileChunkNO(x));
+                x++;
+            }
+        }
+    }
+    
+    public void deleteFileChunk(String fileName, int number, String chunkNumber) {
+        String remoteFile = "/root/" + fileName + chunkNumber;
+
+        Session session = null;
+        Channel channel = null;
+
+        try {
+            JSch jsch = new JSch();
+            session = jsch.getSession(USERNAME[number], REMOTE_HOST[number], REMOTE_PORT[number]);
+            session.setPassword(PASSWORD[number]);
+            java.util.Properties config = new java.util.Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+            session.connect(SESSION_TIMEOUT);
+
+            channel = session.openChannel("sftp");
+            channel.connect(CHANNEL_TIMEOUT);
+            ChannelSftp sftpChannel = (ChannelSftp) channel;
+
+            sftpChannel.rm(remoteFile);
+            System.out.println("Deleted remote file: " + remoteFile);
+
+            sftpChannel.exit();
+        } catch (JSchException | SftpException e) {
+            e.printStackTrace();
+        } finally {
+            if (channel != null && channel.isConnected()) {
+                channel.disconnect();
+            }
+            if (session != null && session.isConnected()) {
+                session.disconnect();
+            }
+        }
+    }
+
+    
+    
+    public String fileChunkNO(int number){
+        if (number<10){
+            return "0"+Integer.toString(number);
+        }
+        return Integer.toString(number);
     }
 
 }

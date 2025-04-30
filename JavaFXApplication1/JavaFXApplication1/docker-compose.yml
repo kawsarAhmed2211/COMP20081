@@ -55,19 +55,3 @@ services:
       - "5004:22"
     volumes:
       - ./data:/data
-      
-  file-user-container6:
-    build:
-      context: ./file-user-container  # Path to the folder containing the Dockerfile
-      dockerfile: Dockerfile
-    image: file-user-container6:latest 
-    command: /usr/sbin/sshd -D
-    ports:
-      - "5005:22"
-    volumes:
-      - ./data:/data
-<<<<<<< HEAD
-=======
-      
-   
->>>>>>> 056f6d31e6e64b2b47fcf39ae2af6f3cdc301ea6

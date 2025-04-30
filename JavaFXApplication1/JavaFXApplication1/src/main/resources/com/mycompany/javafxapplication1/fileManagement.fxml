@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+
+<AnchorPane fx:controller="com.mycompany.javafxapplication1.FileManagementController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="298.0" prefWidth="522.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Button fx:id="createButtonFileID" layoutX="183.0" layoutY="83.0" mnemonicParsing="false" onAction="#createFileButtonAction" text="Create File" />
+      <Button fx:id="updateButtonFileID" layoutX="182.0" layoutY="128.0" mnemonicParsing="false" onAction="#updateFileButtonAction" text="Update File" />
+      <Button fx:id="deleteFileID" layoutX="184.0" layoutY="173.0" mnemonicParsing="false" onAction="#deleteFileAction" text="Delete File" />
+      <Button fx:id="viewFileID" layoutX="183.0" layoutY="214.0" mnemonicParsing="false" onAction="#viewFileActon" text="View File" />
+      <Button fx:id="switchToSecondaryButtonID" layoutX="14.0" layoutY="257.0" mnemonicParsing="false" onAction="#switchToSecondary" text="Back" />
+      <TextField fx:id="userTextField" layoutX="97.0" layoutY="22.0" />
+      <Label layoutX="20.0" layoutY="26.0" text="Welcome" />
+      <Label layoutX="279.0" layoutY="26.0" text="to the file management system" />
+   </children>
+</AnchorPane>

@@ -125,7 +125,8 @@ private void promptAndCreateFile() {
                 "x-terminal-emulator", "-e", "bash", "-c",
                 "cd \"" + file.getParent() + "\" && nano \"" + file.getName() + "\""
             };
-            
+            FileChunking fileChunking = new FileChunking();
+                    fileChunking.splitFileIntoChunks(file);
             try {
                 new ProcessBuilder(cmd).start();
             } catch (IOException e) {
