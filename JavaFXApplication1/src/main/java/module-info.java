@@ -8,4 +8,5 @@ module com.mycompany.javafxapplication1 {
 
     opens com.mycompany.javafxapplication1 to javafx.fxml;
     exports com.mycompany.javafxapplication1;
+    requires org.xerial.sqlitejdbc;
 }

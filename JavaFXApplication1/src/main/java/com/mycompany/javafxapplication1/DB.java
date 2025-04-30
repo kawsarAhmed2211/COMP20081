@@ -525,9 +525,4 @@ public class DB {
             return auditTrails;
         }
 
-
-
-
-
-
 }

@@ -3,7 +3,7 @@ com/mycompany/javafxapplication1/FileChunking.class
 com/mycompany/javafxapplication1/FileEncryptionDecryption.class
 com/mycompany/javafxapplication1/FilesInitialisationClass.class
 com/mycompany/javafxapplication1/ACL.class
-module-info.class
+com/mycompany/javafxapplication1/ContainerClass.class
 com/mycompany/javafxapplication1/AuditTrail.class
 com/mycompany/javafxapplication1/PrimaryController.class
 com/mycompany/javafxapplication1/App.class
