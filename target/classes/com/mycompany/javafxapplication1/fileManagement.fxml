@@ -4,17 +4,41 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 
-
-<AnchorPane fx:controller="com.mycompany.javafxapplication1.FileManagementController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="298.0" prefWidth="522.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="298.0" prefWidth="522.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.javafxapplication1.FileManagementController">
    <children>
-      <Button fx:id="createButtonFileID" layoutX="183.0" layoutY="83.0" mnemonicParsing="false" onAction="#createFileButtonAction" text="Create File" />
-      <Button fx:id="updateButtonFileID" layoutX="182.0" layoutY="128.0" mnemonicParsing="false" onAction="#updateFileButtonAction" text="Update File" />
-      <Button fx:id="deleteFileID" layoutX="184.0" layoutY="173.0" mnemonicParsing="false" onAction="#deleteFileAction" text="Delete File" />
-      <Button fx:id="viewFileID" layoutX="183.0" layoutY="214.0" mnemonicParsing="false" onAction="#viewFileActon" text="View File" />
+      <AnchorPane layoutX="183.0" layoutY="83.0" />
       <Button fx:id="switchToSecondaryButtonID" layoutX="14.0" layoutY="257.0" mnemonicParsing="false" onAction="#switchToSecondary" text="Back" />
       <TextField fx:id="userTextField" layoutX="97.0" layoutY="22.0" />
       <Label layoutX="20.0" layoutY="26.0" text="Welcome" />
       <Label layoutX="279.0" layoutY="26.0" text="to the file management system" />
+      <AnchorPane layoutX="35.0" layoutY="89.0">
+         <children>
+            <GridPane>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <Button fx:id="createButtonFileID" mnemonicParsing="false" onAction="#createFileButtonAction" prefHeight="39.0" prefWidth="93.0" text="Create File" />
+                  <Button fx:id="updateButtonFileID" mnemonicParsing="false" onAction="#updateFileButtonAction" text="Update File" GridPane.rowIndex="1" />
+                  <Button fx:id="viewFileID" mnemonicParsing="false" onAction="#viewFileActon" text="View File" GridPane.rowIndex="2" />
+                  <Button fx:id="deleteFileID" mnemonicParsing="false" onAction="#deleteFileAction" text="Delete File" GridPane.rowIndex="3" />
+               </children>
+            </GridPane>
+         </children>
+      </AnchorPane>
+      <Button layoutX="268.0" layoutY="89.0" mnemonicParsing="false" text="Grant Read Access" />
+      <Button layoutX="268.0" layoutY="125.0" mnemonicParsing="false" text="Grant Read and Write Access" />
+      <Button layoutX="268.0" layoutY="155.0" mnemonicParsing="false" text="Recover" />
+      <Button layoutX="268.0" layoutY="185.0" mnemonicParsing="false" text="Rewoke Access" />
    </children>
 </AnchorPane>

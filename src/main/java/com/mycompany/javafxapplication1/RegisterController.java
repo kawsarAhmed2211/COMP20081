@@ -98,7 +98,7 @@ public class RegisterController {
                 secondaryStage.setScene(scene);
                 SecondaryController controller = loader.getController();
                 secondaryStage.setTitle("Show users");
-                controller.initialise(credentials);
+                //controller.initialise(credentials);
                 String msg = "some data sent from Register Controller";
                 secondaryStage.setUserData(msg);
             } else {

@@ -74,7 +74,7 @@ public class PrimaryController {
                 Scene scene = new Scene(root, 640, 480);
                 secondaryStage.setScene(scene);
                 SecondaryController controller = loader.getController();
-                controller.initialise(credentials);
+                //controller.initialise(credentials);
                 secondaryStage.setTitle("Show Users");
                 String msg="some data sent from Primary Controller";
                 secondaryStage.setUserData(msg);

@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.text.*?>
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 
-<AnchorPane id="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.javafxapplication1.RegisterController">
+<AnchorPane id="AnchorPane" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.javafxapplication1.RegisterController">
    <children>
       <GridPane alignment="CENTER" layoutY="124.0" prefHeight="126.0" prefWidth="600.0">
         <columnConstraints>
@@ -31,8 +33,6 @@
             <TextField fx:id="userTextField" GridPane.columnIndex="1" />
             <PasswordField fx:id="passPasswordField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <PasswordField fx:id="rePassPasswordField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Button fx:id="selectBtn" mnemonicParsing="false" onAction="#selectBtnHandler" text="Select File Name" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-            <Text fx:id="fileText" strokeType="OUTSIDE" strokeWidth="0.0" text="Select File." GridPane.rowIndex="4" />
          </children>
       </GridPane>
       <Label layoutX="272.0" layoutY="94.0" text="Register New User" />

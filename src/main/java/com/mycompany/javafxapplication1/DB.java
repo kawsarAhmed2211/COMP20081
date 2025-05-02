@@ -95,13 +95,25 @@ public class DB {
         }
         return false;
     }
+    
+      public boolean isUsernameTaken(String username) throws ClassNotFoundException {
+        boolean usernameExists = false;
+        String query = "SELECT name FROM " + TABLE_NAME + " WHERE name = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)){
+            preparedStatement.setString(1, username);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                usernameExists = true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+        return usernameExists;
+    }
+    
 
-    public void updateUserPasswordTable(String username, String oldPassword, String newPassword) throws InvalidKeySpecException, ClassNotFoundException {
-        if (!validateUser(username, oldPassword)) {
-            System.out.println("Incorrect current password. Try again.");
-            return;
-        }
-
+    public void updateUserPasswordTable(String username, String newPassword) throws InvalidKeySpecException, ClassNotFoundException {
         String updateQuery = "UPDATE " + TABLE_NAME + " SET password = ? WHERE name = ?";
         try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {

@@ -16,6 +16,8 @@ import javafx.stage.Stage;
 
 public class TerminalController {
 
+    private String cred;
+    
     @FXML
     private TextField userTextField; // Holds username (e.g., fetched from DB)
 
@@ -37,11 +39,9 @@ public class TerminalController {
     
     private final String homePath = System.getProperty("user.dir") + "/src/Files";
 
-    public void setUsername(String username) {
-        User user = new User(username);  // Create a new User with just the username  // Store the user globally in UserSession
-        userTextField.setText(username);  // Display the username in the TextField
-        userTextField.setEditable(false);
-        getOrCreateUserDirectory();
+   public void initialise(String credentials) {
+        this.cred = credentials;
+        userTextField.setText(credentials);
     }
 
     public String getUsername() {

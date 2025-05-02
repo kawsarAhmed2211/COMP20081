@@ -24,6 +24,8 @@ import javafx.stage.Stage;
 
 public class SecondaryController {
     
+    private String cred;
+    
     @FXML
     private TextField userTextField;
     
@@ -44,6 +46,9 @@ public class SecondaryController {
     
     @FXML
     private Button fileManagementButton;
+    
+    @FXML
+    private Button updatePasswordButtonID;
     
     @FXML
     private void RefreshBtnHandler(ActionEvent event){
@@ -71,7 +76,9 @@ public class SecondaryController {
     }
 
     public void initialise(String[] credentials) {
+        this.cred = credentials[0];
         userTextField.setText(credentials[0]);
+        customTextField.setText("Users");
         DB myObj = new DB();
         ObservableList<User> data;
         try {
@@ -99,11 +106,7 @@ public class SecondaryController {
             loader.setLocation(getClass().getResource("terminal.fxml"));
             Parent root = loader.load();
             TerminalController terminalController = loader.getController();
-            String username = userTextField.getText();
-            terminalController.setUsername(username);
-
-        // Keep it in userData for refresh buttons later
-            terminalStage.setUserData(username);
+            terminalController.initialise(this.cred);
             
             Scene scene = new Scene(root, 640, 480);
             terminalStage.setScene(scene);
@@ -137,4 +140,26 @@ public class SecondaryController {
             e.printStackTrace();
         }
     }
+    
+    @FXML
+    private void updatePasswordButtonAction(ActionEvent event) {
+        Stage stage = (Stage) updatePasswordButtonID.getScene().getWindow();
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("update.fxml"));
+            Parent root = loader.load();
+
+            // Optionally pass data to the update controller
+            UpdateController updateController = loader.getController();
+            //updateController.initialise(userTextField.getText()); // example if you have an init method
+
+            Scene scene = new Scene(root, 640, 480);
+            stage.setScene(scene);
+            stage.setTitle("Update Password");
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
