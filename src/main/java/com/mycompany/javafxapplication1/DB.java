@@ -63,6 +63,18 @@ public class DB {
         String deleteQuery = "DROP TABLE IF EXISTS " + TABLE_NAME;
         executeUpdate(deleteQuery);
     }
+    
+        public void deleteUser(String username, String password) throws InvalidKeySpecException, ClassNotFoundException{
+        String query = "DELETE FROM users WHERE name = ? and password = ?";
+        try (Connection connection = getConnection();
+                PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2,password);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void addUserToTable(String username, String password) throws InvalidKeySpecException, ClassNotFoundException {
         String addQuery = "INSERT INTO " + TABLE_NAME + " (name, password) VALUES (?, ?)";

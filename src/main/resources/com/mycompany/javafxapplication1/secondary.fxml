@@ -60,7 +60,7 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Button mnemonicParsing="false" text="Delete Account" />
+            <Button fx:id="deleteButtonID" mnemonicParsing="false" onAction="#deleteButtonActionID" text="Delete Account" />
             <Button fx:id="updatePasswordButtonID" mnemonicParsing="false" onAction="#updatePasswordButtonAction" text="Update Password" GridPane.columnIndex="1" />
             <Button fx:id="fileManagementButton" mnemonicParsing="false" onAction="#switchToFileManagementController" text="File Management" GridPane.rowIndex="2" />
             <Button fx:id="terminalButton" mnemonicParsing="false" onAction="#switchToTerminal" text="Terminal" GridPane.columnIndex="1" GridPane.rowIndex="2" />

@@ -51,6 +51,9 @@ public class SecondaryController {
     private Button updatePasswordButtonID;
     
     @FXML
+    private Button deleteButtonID;
+    
+    @FXML
     private void RefreshBtnHandler(ActionEvent event){
         Stage primaryStage = (Stage) customTextField.getScene().getWindow();
         customTextField.setText((String) primaryStage.getUserData());
@@ -155,6 +158,27 @@ public class SecondaryController {
             Scene scene = new Scene(root, 640, 480);
             stage.setScene(scene);
             stage.setTitle("Update Password");
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @FXML
+    private void deleteButtonActionID(ActionEvent event){
+        Stage stage = (Stage) deleteButtonID.getScene().getWindow();
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("delete.fxml"));
+            Parent root = loader.load();
+
+            // Optionally pass data to the update controller
+            DeleteController deleteController = loader.getController();
+            //updateController.initialise(userTextField.getText()); // example if you have an init method
+
+            Scene scene = new Scene(root, 640, 480);
+            stage.setScene(scene);
+            stage.setTitle("Delete Password");
             stage.show();
 
         } catch (Exception e) {
