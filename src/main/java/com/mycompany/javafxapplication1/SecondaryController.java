@@ -135,7 +135,7 @@ public class SecondaryController {
             
             Scene scene = new Scene(root, 640, 480);
             fileControllerStage.setScene(scene);
-            fileManagementController.setUser(userTextField.getText());
+            //fileManagementController.setUser(userTextField.getText());
             fileControllerStage.show();
             secondaryStage.close();
 

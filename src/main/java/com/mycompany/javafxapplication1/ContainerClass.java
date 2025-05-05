@@ -91,7 +91,7 @@ public class ContainerClass {
        return false;
    }
    
-    public void chunkfile(String fileName){
+    public void chunkfile(File fileName){
         ProcessBuilder splitProcessBuilder = new ProcessBuilder("bash", "-c", 
                 "split -n " + Integer.toString(this.numberOfContainers()) +  " -d "+ fileName + " " +fileName);
         try{
@@ -209,7 +209,7 @@ public class ContainerClass {
     }
     
     public void sendFileChunk(String fileName, int number, String chunkNumber) {
-        String localFile = "temp/" + fileName + chunkNumber;
+        String localFile =   "/home/kawsar/Documents/COMP20081/src/Files/"+fileName + chunkNumber;
         String remoteFile = "/root/" + fileName + chunkNumber;
 
         Session session = null;

@@ -43,20 +43,20 @@ public class FileManagementController {
     private String username;
 
     // Main working directory for file storage
-    private final String homePath = System.getProperty("user.dir") + "/src/Files/";
+    //private final String homePath = System.getProperty("user.dir") + "/src/Files/";
     
     public String getUsername() {
         return this.userTextField.getText();
     }
     
-    public String getHomePath(){
-        return this.homePath;
-    }
+    //public String getHomePath(){
+        //return this.homePath;
+    //}
     
-    public void setUser(String username){
-        this.username = username;
-        userTextField.setText(username);
-    }
+    //public void setUser(String username){
+        //this.username = username;
+        //userTextField.setText(username);
+    //}
     
     @FXML
     private void createFileButtonAction() {
@@ -77,7 +77,7 @@ public class FileManagementController {
     private void viewFileActon(ActionEvent event) {
         promptAndReadFile(event);
     }
-private void promptAndCreateFile() {
+    private void promptAndCreateFile() {
     TextInputDialog dialog = new TextInputDialog();
     dialog.setTitle("Create File");
     dialog.setHeaderText("Enter the filename to create:");
@@ -85,14 +85,20 @@ private void promptAndCreateFile() {
 
     result.ifPresent(filename -> {
         try {
-            File dir = new File(homePath + getUsername());
-            if (!dir.exists()) dir.mkdirs();
+            String basePath = System.getProperty("user.home") + "/Documents/COMP20081/src/Files/";
+            File dir = new File(basePath);
+            if (!dir.exists()) {
+                boolean made = dir.mkdirs();
+                if (!made) {
+                    showAlert("Error", "Failed to create parent directory.");
+                    return;
+                }
+            }
 
-            File file = new File(homePath + getUsername() + "/" + filename);
+            File file = new File(basePath + filename);
             if (file.exists()) {
                 showAlert("Warning", "File already exists.");
             } else {
-                // Create the file before opening nano (optional, but good for control)
                 boolean created = file.createNewFile();
                 if (!created) {
                     showAlert("Error", "Failed to create the file.");
@@ -105,18 +111,69 @@ private void promptAndCreateFile() {
                 };
                 new ProcessBuilder(cmd).start();
             }
+            
+            ContainerClass cs = new ContainerClass();
+            cs.chunkfile(file);
+             int x = 0;
+            for (int i = 0; i < 6; i++) {
+                if (x >= cs.numberOfContainers()) break;
+
+                String chunkSuffix = cs.fileChunkNO(x); // e.g., 00, 01...
+                File chunkedFile = new File(basePath + filename + chunkSuffix);
+                if (chunkedFile.exists()) {
+                    cs.sendFileChunk(filename, i, chunkSuffix); // send chunk to container i
+                } else {
+                    System.out.println("Missing chunk file: " + chunkedFile.getAbsolutePath());
+                }
+                x++;
+            }
         } catch (IOException e) {
             showAlert("Error", "Error creating file: " + e.getMessage());
         }
     });
 }
 
+    
+//private void promptAndCreateFile() {
+//    TextInputDialog dialog = new TextInputDialog();
+//    dialog.setTitle("Create File");
+//    dialog.setHeaderText("Enter the filename to create:");
+//    Optional<String> result = dialog.showAndWait();
+//
+//    result.ifPresent(filename -> {
+//        try {
+//            File dir = new File("/home/Documents/COMP20081/src/Files/");
+//            if (!dir.exists()) dir.mkdirs();
+//
+//            File file = new File("/home/Documents/COMP20081/src/Files/" + filename);
+//            if (file.exists()) {
+//                showAlert("Warning", "File already exists.");
+//            } else {
+//                // Create the file before opening nano (optional, but good for control)
+//                boolean created = file.createNewFile();
+//                if (!created) {
+//                    showAlert("Error", "Failed to create the file.");
+//                    return;
+//                }
+//
+//                String[] cmd = {
+//                    "x-terminal-emulator", "-e", "bash", "-c",
+//                    "nano \"" + file.getAbsolutePath() + "\""
+//                };
+//                new ProcessBuilder(cmd).start();
+//            }
+//        } catch (IOException e) {
+//            showAlert("Error", "Error creating file: " + e.getMessage());
+//        }
+//    });
+//}
+
 
     private void promptAndUpdateFile(ActionEvent event) {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select File to Update");
-        fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
+        //fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
 
         File file = fileChooser.showOpenDialog(stage);
 
@@ -140,7 +197,7 @@ private void promptAndCreateFile() {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select File to Delete");
-        fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
+        //fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
 
         File file = fileChooser.showOpenDialog(stage);
 
@@ -161,7 +218,7 @@ private void promptAndCreateFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Read File");
         File file = fileChooser.showOpenDialog(stage);
-        fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
+        //fileChooser.setInitialDirectory(new File(homePath+"/"+getUsername()));
 
 
         if (file != null && file.exists()) {

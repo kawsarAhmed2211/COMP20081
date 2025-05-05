@@ -1,0 +1,13 @@
+ int x = 0;
+            for (int i = 0; i < 6; i++) {
+                if (x >= cs.numberOfContainers()) break;
+
+                String chunkSuffix = cs.fileChunkNO(x); // e.g., 00, 01...
+                File chunkedFile = new File(basePath + filename + chunkSuffix);
+                if (chunkedFile.exists()) {
+                    cs.sendFileChunk(filename, i, chunkSuffix); // send chunk to container i
+                } else {
+                    System.out.println("Missing chunk file: " + chunkedFile.getAbsolutePath());
+                }
+                x++;
+            }V
