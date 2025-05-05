@@ -64,12 +64,11 @@ public class DB {
         executeUpdate(deleteQuery);
     }
     
-        public void deleteUser(String username, String password) throws InvalidKeySpecException, ClassNotFoundException{
-        String query = "DELETE FROM users WHERE name = ? and password = ?";
+        public void deleteUser(String username) throws InvalidKeySpecException, ClassNotFoundException{
+        String query = "DELETE FROM users WHERE name = ?";
         try (Connection connection = getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, username);
-            pstmt.setString(2,password);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

@@ -73,9 +73,9 @@ public class DeleteController {
                 secondaryStage.setTitle("Register a new User");
             }
             else if (myObj.validateUser(userTextField.getText(), passPasswordField.getText())) {
-                myObj.deleteUser(userTextField.getText(), passPasswordField.getText());
+                myObj.deleteUser(userTextField.getText());
                 dialogue("Removing information to the database", "Successful!");
-                loader.setLocation(getClass().getResource("login.fxml"));
+                loader.setLocation(getClass().getResource("register.fxml"));
                 Parent root = loader.load();
                 Scene scene = new Scene(root, 640, 480);
                 secondaryStage.setScene(scene);
@@ -101,11 +101,11 @@ public class DeleteController {
         Stage secondaryStage = new Stage();
         Stage primaryStage = (Stage) backLoginBtn.getScene().getWindow();
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("register.fxml"));
             Parent root = loader.load();
             Scene scene = new Scene(root, 640, 480);
             secondaryStage.setScene(scene);
-            secondaryStage.setTitle("Login");
+            //secondaryStage.setTitle("Login");
             secondaryStage.show();
             primaryStage.close();
 
