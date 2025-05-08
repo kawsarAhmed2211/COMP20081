@@ -1,0 +1,28 @@
+cd /home/kawsar/Documents/COMP20081; JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 /snap/netbeans/127/netbeans/java/maven/bin/mvn -Dexec.vmArgs= -Dexec.appArgs= --no-transfer-progress clean javafx:run
+Scanning for projects...
+
+------------------< com.mycompany:JavaFXApplication1 >------------------
+Building JavaFXApplication1 1.0-SNAPSHOT
+  from pom.xml
+--------------------------------[ jar ]---------------------------------
+
+--- clean:3.2.0:clean (default-clean) @ JavaFXApplication1 ---
+Deleting /home/kawsar/Documents/COMP20081/target
+
+>>> javafx:0.0.4:run (default-cli) > process-classes @ JavaFXApplication1 >>>
+
+--- resources:3.3.1:resources (default-resources) @ JavaFXApplication1 ---
+Copying 7 resources from src/main/resources to target/classes
+
+--- compiler:3.8.0:compile (default-compile) @ JavaFXApplication1 ---
+Changes detected - recompiling the module!
+Compiling 14 source files to /home/kawsar/Documents/COMP20081/target/classes
+/home/kawsar/Documents/COMP20081/src/main/java/com/mycompany/javafxapplication1/SecondaryController.java: /home/kawsar/Documents/COMP20081/src/main/java/com/mycompany/javafxapplication1/SecondaryController.java uses unchecked or unsafe operations.
+/home/kawsar/Documents/COMP20081/src/main/java/com/mycompany/javafxapplication1/SecondaryController.java: Recompile with -Xlint:unchecked for details.
+-------------------------------------------------------------
+COMPILATION ERROR : 
+-------------------------------------------------------------
+com/mycompany/javafxapplication1/ContainerClass.java:[321,17] method sendFileChunk(java.io.File,int,java.lang.String) is already defined in class com.mycompany.javafxapplication1.ContainerClass
+1 error
+-------------------------------------------------------------
+-------------------------------------------------------------

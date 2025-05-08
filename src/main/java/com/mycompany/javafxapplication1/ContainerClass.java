@@ -25,12 +25,12 @@ import net.lingala.zip4j.ZipFile;
  */
 public class ContainerClass {
     private static final String[] containers_name = {
-        "javafxapplication1_file-user-container1_1",
-        "javafxapplication1_file-user-container2_1",
-        "javafxapplication1_file-user-container3_1",
-        "javafxapplication1_file-user-container4_1",
-        "javafxapplication1_file-user-container5_1",
-        "javafxapplication1_file-user-container6_1"
+    "comp20081_file-user-container1_1",
+    "comp20081_file-user-container2_1",
+    "comp20081_file-user-container3_1",
+    "comp20081_file-user-container4_1",
+    "comp20081_file-user-container5_1",
+    "comp20081_file-user-container6_1"
     };
 
     private static final String[] REMOTE_HOST = {
@@ -90,21 +90,50 @@ public class ContainerClass {
         }
        return false;
    }
-   
-    public void chunkfile(File fileName){
-        ProcessBuilder splitProcessBuilder = new ProcessBuilder("bash", "-c", 
-                "split -n " + Integer.toString(this.numberOfContainers()) +  " -d "+ fileName + " " +fileName);
-        try{
-           Process splitProcess = splitProcessBuilder.start();
-            int splitExitCode = splitProcess.waitFor();
-            if (splitExitCode != 0) {
-                System.err.println("Error splitting the file.");
-            }
-        }catch(Exception e){
-            e.printStackTrace();
+//   
+//    public void chunkfile(File fileName){
+//        ProcessBuilder splitProcessBuilder = new ProcessBuilder("bash", "-c", 
+//                "split -n " + Integer.toString(this.numberOfContainers()) +  " -d "+ fileName + " " +fileName);
+//        try{
+//           Process splitProcess = splitProcessBuilder.start();
+//            int splitExitCode = splitProcess.waitFor();
+//            if (splitExitCode != 0) {
+//                System.err.println("Error splitting the file.");
+//            }
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+//   }
+   public File[] chunkfile(File fileName) {
+    int numContainers = numberOfContainers();
+    String basePath = fileName.getParent();
+    String baseFileName = fileName.getName();
+    String chunkDirPath = basePath + "/chunked_" + baseFileName;
+    File chunkDir = new File(chunkDirPath);
+
+    if (!chunkDir.exists()) {
+        chunkDir.mkdirs();
+    }
+
+    try {
+        ProcessBuilder pb = new ProcessBuilder(
+            "bash", "-c",
+            "split -n " + numContainers + " -d \"" + fileName.getAbsolutePath() + "\" \"" + chunkDirPath + "/" + baseFileName + "\""
+        );
+        Process process = pb.start();
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            System.err.println("Error during file splitting.");
         }
-   }
-   
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return chunkDir.listFiles(); // return the list of chunk files
+}
+
+    
+    
     public void unchunkfile(String fileName){
        try {
             ProcessBuilder catProcessBuilder = new ProcessBuilder("bash", "-c", "cat "+fileName+"* > " + fileName);
@@ -198,7 +227,7 @@ public class ContainerClass {
         }
     }
     
-    public void sendFile(FilesInitialisationClass fileObj){
+    /*public void sendFile(FilesInitialisationClass fileObj){
         int x = 0;
         for (int i = 0; i < working_containers.length; i++) {
             if(working_containers[i]){
@@ -206,11 +235,56 @@ public class ContainerClass {
                 x++;
             }
         }
-    }
+    }*/
     
-    public void sendFileChunk(String fileName, int number, String chunkNumber) {
+    public void sendFile(String baseFileName, File[] chunks) {
+    int x = 0;
+    for (int i = 0; i < working_containers.length; i++) {
+        if (working_containers[i]) {
+            sendFileChunk(chunks[x], i, fileChunkNO(x));
+            x++;
+        }
+    }
+}
+
+public void sendFileChunk(File chunkFile, int containerIndex, String chunkNumber) {
+    String remoteFile = "/tmp/" + chunkFile.getName();  // On the container
+    Session session = null;
+    Channel channel = null;
+
+    try {
+        JSch jsch = new JSch();
+        session = jsch.getSession(USERNAME[containerIndex], REMOTE_HOST[containerIndex], REMOTE_PORT[containerIndex]);
+        session.setPassword(PASSWORD[containerIndex]);
+        java.util.Properties config = new java.util.Properties();
+        config.put("StrictHostKeyChecking", "no");
+        session.setConfig(config);
+        session.connect(SESSION_TIMEOUT);
+
+        channel = session.openChannel("sftp");
+        channel.connect(CHANNEL_TIMEOUT);
+        ChannelSftp sftpChannel = (ChannelSftp) channel;
+
+        sftpChannel.put(chunkFile.getAbsolutePath(), remoteFile);
+        System.out.println("Uploaded " + chunkFile.getName() + " to " + remoteFile);
+
+        sftpChannel.exit();
+    } catch (JSchException | SftpException e) {
+        e.printStackTrace();
+    } finally {
+        if (channel != null && channel.isConnected()) {
+            channel.disconnect();
+        }
+        if (session != null && session.isConnected()) {
+            session.disconnect();
+        }
+    }
+}
+
+    
+    /*public void sendFileChunk(String fileName, int number, String chunkNumber) {
         String localFile =   "/home/kawsar/Documents/COMP20081/src/Files/"+fileName + chunkNumber;
-        String remoteFile = "/root/" + fileName + chunkNumber;
+        String remoteFile = "/tmp/" + fileName + chunkNumber;
 
         Session session = null;
         Channel channel = null;
@@ -242,7 +316,9 @@ public class ContainerClass {
                 session.disconnect();
             }
         }
-    }
+    }*/
+
+
 
     
 

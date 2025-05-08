@@ -1,0 +1,35 @@
+-----------
+BUILD FAILURE
+------------------------------------------------------------------------
+Total time:  7.219 s
+Finished at: 2025-05-08T18:10:29+01:00
+------------------------------------------------------------------------
+Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.8.0:compile (default-compile) on project JavaFXApplication1: Compilation failure
+com/mycompany/javafxapplication1/ContainerClass.java:[321,17] method sendFileChunk(java.io.File,int,java.lang.String) is already defined in class com.mycompany.javafxapplication1.ContainerClass
+
+-> [Help 1]
+
+To see the full stack trace of the errors, re-run Maven with the -e switch.
+Re-run Maven using the -X switch to enable full debug logging.
+
+For more information about the errors and possible solutions, please read the following articles:
+[Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+cd /home/kawsar/Documents/COMP20081; JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 /snap/netbeans/127/netbeans/java/maven/bin/mvn -Dexec.vmArgs= -Dexec.appArgs= --no-transfer-progress clean javafx:run
+Scanning for projects...
+
+------------------< com.mycompany:JavaFXApplication1 >------------------
+Building JavaFXApplication1 1.0-SNAPSHOT
+  from pom.xml
+--------------------------------[ jar ]---------------------------------
+
+--- clean:3.2.0:clean (default-clean) @ JavaFXApplication1 ---
+Deleting /home/kawsar/Documents/COMP20081/target
+
+>>> javafx:0.0.4:run (default-cli) > process-classes @ JavaFXApplication1 >>>
+
+--- resources:3.3.1:resources (default-resources) @ JavaFXApplication1 ---
+Copying 7 resources from src/main/resources to target/classes
+
+--- compiler:3.8.0:compile (default-compile) @ JavaFXApplication1 ---
+Changes detected - recompiling the module!
+Compiling 14 source files to /home/k

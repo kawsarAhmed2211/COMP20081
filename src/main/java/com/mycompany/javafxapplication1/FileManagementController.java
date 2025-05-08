@@ -77,6 +77,7 @@ public class FileManagementController {
     private void viewFileActon(ActionEvent event) {
         promptAndReadFile(event);
     }
+    
     private void promptAndCreateFile() {
     TextInputDialog dialog = new TextInputDialog();
     dialog.setTitle("Create File");
@@ -87,51 +88,53 @@ public class FileManagementController {
         try {
             String basePath = System.getProperty("user.home") + "/Documents/COMP20081/src/Files/";
             File dir = new File(basePath);
-            if (!dir.exists()) {
-                boolean made = dir.mkdirs();
-                if (!made) {
-                    showAlert("Error", "Failed to create parent directory.");
-                    return;
-                }
+            if (!dir.exists() && !dir.mkdirs()) {
+                showAlert("Error", "Failed to create parent directory.");
+                return;
             }
 
             File file = new File(basePath + filename);
             if (file.exists()) {
                 showAlert("Warning", "File already exists.");
-            } else {
-                boolean created = file.createNewFile();
-                if (!created) {
-                    showAlert("Error", "Failed to create the file.");
-                    return;
-                }
-
-                String[] cmd = {
-                    "x-terminal-emulator", "-e", "bash", "-c",
-                    "nano \"" + file.getAbsolutePath() + "\""
-                };
-                new ProcessBuilder(cmd).start();
+                return;
             }
-            
+
+            if (!file.createNewFile()) {
+                showAlert("Error", "Failed to create the file.");
+                return;
+            }
+
+            // Open file in nano inside terminal
+            String[] cmd = {
+                "x-terminal-emulator", "-e", "bash", "-c",
+                "nano \"" + file.getAbsolutePath() + "\""
+            };
+            new ProcessBuilder(cmd).start();
+
+            // Wait and confirm with user
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Continue?");
+            confirm.setHeaderText("Click OK after saving and closing nano to proceed with chunking/upload.");
+            confirm.showAndWait();
+
+            // Now chunk and upload
             ContainerClass cs = new ContainerClass();
-            cs.chunkfile(file);
-             int x = 0;
-            for (int i = 0; i < 6; i++) {
-                if (x >= cs.numberOfContainers()) break;
+            File[] chunks = cs.chunkfile(file);
+            cs.sendFile(filename, chunks);
 
-                String chunkSuffix = cs.fileChunkNO(x); // e.g., 00, 01...
-                File chunkedFile = new File(basePath + filename + chunkSuffix);
-                if (chunkedFile.exists()) {
-                    cs.sendFileChunk(filename, i, chunkSuffix); // send chunk to container i
-                } else {
-                    System.out.println("Missing chunk file: " + chunkedFile.getAbsolutePath());
-                }
-                x++;
-            }
+            showAlert("Success", "File has been uploaded to containers.");
+
         } catch (IOException e) {
-            showAlert("Error", "Error creating file: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Error", "An IO error occurred: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Error", "Unexpected error: " + e.getMessage());
         }
     });
 }
+
+    
 
     
 //private void promptAndCreateFile() {

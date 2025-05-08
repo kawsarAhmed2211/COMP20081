@@ -1,0 +1,22 @@
+----------------------------------------------
+COMPILATION ERROR : 
+-------------------------------------------------------------
+com/mycompany/javafxapplication1/ContainerClass.java:[321,17] method sendFileChunk(java.io.File,int,java.lang.String) is already defined in class com.mycompany.javafxapplication1.ContainerClass
+1 error
+-------------------------------------------------------------
+------------------------------------------------------------------------
+BUILD FAILURE
+------------------------------------------------------------------------
+Total time:  7.219 s
+Finished at: 2025-05-08T18:10:29+01:00
+------------------------------------------------------------------------
+Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.8.0:compile (default-compile) on project JavaFXApplication1: Compilation failure
+com/mycompany/javafxapplication1/ContainerClass.java:[321,17] method sendFileChunk(java.io.File,int,java.lang.String) is already defined in class com.mycompany.javafxapplication1.ContainerClass
+
+-> [Help 1]
+
+To see the full stack trace of the errors, re-run Maven with the -e switch.
+Re-run Maven using the -X switch to enable full debug logging.
+
+For more information about the errors and possible solutions, please read the following articles:
+[Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
